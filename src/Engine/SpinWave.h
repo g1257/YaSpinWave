@@ -1,0 +1,87 @@
+#ifndef SPINWAVE_H
+#define SPINWAVE_H
+#include "String.h"
+#include <iostream>
+#include "SpaceConnectors.h"
+#include "Angles.h"
+
+namespace yasw {
+
+template<typename RealType, typename ComplexOrRealType>
+class SpinWave {
+
+	typedef yasw::SpaceConnectors<RealType,ComplexOrRealType> SpaceConnectorsType;
+	typedef yasw::Angles<RealType> AnglesType;
+
+	typedef typename SpaceConnectorsType::MatrixComplexOrRealType
+	MatrixComplexOrRealType;
+	typedef typename SpaceConnectorsType::VectorComplexOrRealMatrixType
+	VectorComplexOrRealMatrixType;
+
+public:
+
+	SpinWave(PsimagLite::String jfile,PsimagLite::String afile)
+	    : sc_(jfile),a_(afile),data_(sc_.size())
+	{
+		SizeType lda = sc_.rows();
+		for (SizeType i = 0; i < sc_.size(); ++i) {
+			MatrixComplexOrRealType m(2*lda,2*lda);
+			fillThisMatrix(m,i);
+			data_[i] = m;
+		}
+	}
+
+	void printSpaceMatrices(std::ostream& os)
+	{
+		std::cerr<<"#Here are the "<<data_.size()<< "Hamiltonian-factor matrices.\n";
+		std::cerr<<"-------------------------------------------------------------\n";
+		assert(data_.size() > 0);
+		os<<data_.size()<<" "<<data_[0].n_row()<<"\n";
+		for (SizeType i = 0; i < data_.size(); ++i) {
+			os<<sc_.nvector(i)<<"\n";
+			std::cout<<data_[i];
+		}
+	}
+
+private:
+
+	void fillThisMatrix(MatrixComplexOrRealType& m, SizeType ind) const
+	{
+		SizeType lda = sc_.rows();
+		for (SizeType i = 0; i < lda; ++i) {
+			for (SizeType j = 0; j < lda; ++j) {
+
+				if (a_(i,j) < 0)
+					m(i,j+lda) = m(i+lda,j) = sc_(i,j,ind);
+
+				if (a_(i,j) > 0)
+					m(i,j) = m(i+lda,j+lda) = sc_(i,j,ind);
+
+				if (sc_.isCentralCell(ind) && i == j)
+					m(i,i) = diagonal(i);
+
+			}
+		}
+	}
+
+
+	ComplexOrRealType diagonal(SizeType i) const
+	{
+		ComplexOrRealType sum = 0;
+		SizeType lda = sc_.rows();
+		for (SizeType ind = 0; ind < sc_.size(); ++ind) {
+			for (SizeType j = 0; j < lda; ++j) {
+				sum += sc_(i,j,ind)*a_(i,j);
+			}
+		}
+
+		return sum;
+	}
+
+	SpaceConnectorsType sc_;
+	AnglesType a_;
+	VectorComplexOrRealMatrixType data_;
+}; // SpinWave
+
+}
+#endif // SPINWAVE_H
