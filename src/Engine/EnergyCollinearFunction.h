@@ -1,12 +1,12 @@
-#ifndef ENERGYFUNCTION_H
-#define ENERGYFUNCTION_H
+#ifndef ENERGY_NC_FUNCTION_H
+#define ENERGY_C_FUNCTION_H
 #include "SpaceConnectors.h"
 #include "Vector.h"
 
 namespace yasw {
 
 template<typename RealType, typename ComplexOrRealType>
-class EnergyFunction {
+class EnergyCollinearFunction {
 
 	typedef yasw::SpaceConnectors<RealType,ComplexOrRealType> SpaceConnectorsType;
 	typedef unsigned long long int  LongSizeType;
@@ -15,7 +15,7 @@ public:
 
 	typedef LongSizeType ConfigurationType;
 
-	EnergyFunction(PsimagLite::String jfile)
+	EnergyCollinearFunction(PsimagLite::String jfile)
 	    : sc_(jfile)
 	{}
 
@@ -84,4 +84,4 @@ private:
 
 }
 
-#endif // ENERGYFUNCTION_H
+#endif // ENERGY_C_FUNCTION_H

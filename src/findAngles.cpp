@@ -24,7 +24,8 @@ int main(int argc, char** argv)
 {
 	typedef double RealType;
 	typedef std::complex<RealType> ComplexType;
-	typedef yasw::EnergyFunction<RealType,ComplexType> EnergyCollinearFunctionType;
+	typedef yasw::EnergyCollinearFunction<RealType,ComplexType>
+	        EnergyCollinearFunctionType;
 	typedef yasw::EnergyNonCollinearFunction<RealType,ComplexType>
 	        EnergyNonCollinearFunctionType;
 
