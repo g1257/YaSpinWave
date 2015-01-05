@@ -39,5 +39,6 @@ int main(int argc, char** argv)
 
 	SpinWaveType sw(jfile,afile);
 
-	sw.printSpaceMatrices(std::cout);
+	sw.printSpaceMatrices(std::cerr);
+	sw.printDynamicMatrix(std::cout);
 }

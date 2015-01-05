@@ -33,14 +33,27 @@ public:
 
 	void printSpaceMatrices(std::ostream& os)
 	{
-		std::cerr<<"#Here are the "<<data_.size()<< "Hamiltonian-factor matrices.\n";
+		std::cerr<<"#Here are the "<<data_.size()<< " Hamiltonian-factor matrices.\n";
 		std::cerr<<"-------------------------------------------------------------\n";
 		os<<"\n";
 		assert(data_.size() > 0);
 		os<<data_.size()<<" "<<data_[0].n_row()<<"\n";
 		for (SizeType i = 0; i < data_.size(); ++i) {
 			os<<sc_.nvector(i)<<"\n";
-			printMatrix(os,data_[i]);
+			printMatrix(os,data_[i],1);
+		}
+	}
+
+	void printDynamicMatrix(std::ostream& os)
+	{
+		std::cerr<<"#Here are the "<<data_.size()<< "Dynamic-factor matrices.\n";
+		std::cerr<<"-------------------------------------------------------------\n";
+		os<<"\n";
+		assert(data_.size() > 0);
+		os<<data_.size()<<" "<<data_[0].n_row()<<"\n";
+		for (SizeType i = 0; i < data_.size(); ++i) {
+			os<<sc_.nvector(i)<<"\n";
+			printMatrix(os,data_[i],-1);
 		}
 	}
 
@@ -79,11 +92,17 @@ private:
 		return sum;
 	}
 
-	void printMatrix(std::ostream& os, const MatrixComplexOrRealType& m) const
+	void printMatrix(std::ostream& os,
+	                 const MatrixComplexOrRealType& m,
+	                 RealType sign) const
 	{
+		assert(!(m.n_row() & 1));
+		SizeType nrowOver2 = static_cast<SizeType>(m.n_row()*0.5);
 		for (SizeType i = 0; i < m.n_row(); ++i) {
 			for (SizeType j=0; j < m.n_col(); ++j) {
-				os<<m(i,j)<<" ";
+				ComplexOrRealType tmp = m(i,j);
+				if (i >= nrowOver2) tmp *= sign;
+				os<<tmp<<" ";
 			}
 			os<<"\n";
 		}
