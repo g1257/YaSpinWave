@@ -8,7 +8,8 @@ use Make;
 
 my @drivers = ("findAngles","anglesToMatrix");
 
-my $lapack = Make::findLapack();
+my $lapack = " ";
+#Make::findLapack();
 backupMakefile();
 writeMakefile();
 make();
@@ -28,11 +29,12 @@ sub writeMakefile
 {
 	open(my $fh,">Makefile") or die "Cannot open Makefile for writing: $!\n";
 
-	my $libs = "$lapack -L../../PsimagLite/lib   -lm  -lpthread -gsl -lgslcblas -lpsimaglite ";
-	my $cxx = "g++ -O3 -DNDEBUG -DUSE_GSL";
+	my $libs = "$lapack -L../../PsimagLite/lib   -lm  -lpthread ";
+	my $cxx = "g++ -O3 -DNDEBUG -DNO_LAPACK";
 	my $cppflags = " -IEngine  -I../../PsimagLite/src -I../../PsimagLite";
 	Make::make($fh,\@drivers,"PsimagLite","Linux",0,$libs,$cxx,$cppflags,"true"," "," ");
 
 	close($fh);
 	print "$0: Done writing Makefile\n";
 }
+
