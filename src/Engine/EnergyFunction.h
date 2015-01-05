@@ -9,16 +9,17 @@ template<typename RealType, typename ComplexOrRealType>
 class EnergyFunction {
 
 	typedef yasw::SpaceConnectors<RealType,ComplexOrRealType> SpaceConnectorsType;
+	typedef unsigned long long int  LongSizeType;
 
 public:
 
-	typedef unsigned long long int LongSizeType;
+	typedef LongSizeType ConfigurationType;
 
 	EnergyFunction(PsimagLite::String jfile)
 	    : sc_(jfile)
 	{}
 
-	void minimize(LongSizeType& config) const
+	void minimize(ConfigurationType& config) const
 	{
 		RealType minEnergy = 1e10;
 		SizeType total = 1;
