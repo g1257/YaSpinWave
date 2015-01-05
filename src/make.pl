@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use lib '../PsimagLite/scripts';
+use lib '../../PsimagLite/scripts';
 use Make;
 
 my @drivers = ("findAngles","anglesToMatrix");
@@ -28,9 +28,9 @@ sub writeMakefile
 {
 	open(my $fh,">Makefile") or die "Cannot open Makefile for writing: $!\n";
 
-	my $libs = "$lapack -L../PsimagLite/lib   -lm  -lpthread -gsl -lgslcblas -lpsimaglite ";
+	my $libs = "$lapack -L../../PsimagLite/lib   -lm  -lpthread -gsl -lgslcblas -lpsimaglite ";
 	my $cxx = "g++ -O3 -DNDEBUG -DUSE_GSL";
-	my $cppflags = " -Isrc/  -I../PsimagLite/src -I../PsimagLite";
+	my $cppflags = " -IEngine  -I../../PsimagLite/src -I../../PsimagLite";
 	Make::make($fh,\@drivers,"PsimagLite","Linux",0,$libs,$cxx,$cppflags,"true"," "," ");
 
 	close($fh);
