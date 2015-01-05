@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include "String.h"
 #include "Minimizer.h"
-#include "EnergyFunction.h"
+#include "EnergyCollinearFunction.h"
 #include "EnergyNonCollinearFunction.h"
 
 void usage(const char *progName)
