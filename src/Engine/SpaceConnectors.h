@@ -11,7 +11,7 @@ class SpaceConnectors {
 
 public:
 
-	typedef PsimagLite::Matrix<RealType> MatrixType;
+	typedef PsimagLite::Matrix<RealType> MatrixRealType;
 	typedef PsimagLite::Matrix<ComplexOrRealType> MatrixComplexOrRealType;
 	typedef typename PsimagLite::Vector<MatrixComplexOrRealType>::Type
 	VectorComplexOrRealMatrixType;
@@ -108,7 +108,7 @@ private:
 		}
 	}
 
-	MatrixType nmatrix_;
+	MatrixRealType nmatrix_;
 	VectorComplexOrRealMatrixType data_;
 	SizeType rows_;
 	SizeType centralCellIndex_;
