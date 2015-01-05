@@ -59,7 +59,7 @@ private:
 					m(i,j) = m(i+lda,j+lda) = sc_(i,j,ind);
 
 				if (sc_.isCentralCell(ind) && i == j)
-					m(i,i) = diagonal(i);
+					m(i,i) = m(i+lda,i+lda) = diagonal(i);
 
 			}
 		}

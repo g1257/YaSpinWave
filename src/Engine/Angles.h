@@ -29,7 +29,7 @@ public:
 
 	RealType operator()(SizeType i, SizeType j) const
 	{
-		return cos(data_(i,0));
+		return cos(data_(i,0))*cos(data_(j,0));
 	}
 
 private:
