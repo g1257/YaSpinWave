@@ -35,11 +35,12 @@ public:
 	{
 		std::cerr<<"#Here are the "<<data_.size()<< "Hamiltonian-factor matrices.\n";
 		std::cerr<<"-------------------------------------------------------------\n";
+		os<<"\n";
 		assert(data_.size() > 0);
 		os<<data_.size()<<" "<<data_[0].n_row()<<"\n";
 		for (SizeType i = 0; i < data_.size(); ++i) {
 			os<<sc_.nvector(i)<<"\n";
-			std::cout<<data_[i];
+			printMatrix(os,data_[i]);
 		}
 	}
 
@@ -76,6 +77,16 @@ private:
 		}
 
 		return sum;
+	}
+
+	void printMatrix(std::ostream& os, const MatrixComplexOrRealType& m) const
+	{
+		for (SizeType i = 0; i < m.n_row(); ++i) {
+			for (SizeType j=0; j < m.n_col(); ++j) {
+				os<<m(i,j)<<" ";
+			}
+			os<<"\n";
+		}
 	}
 
 	SpaceConnectorsType sc_;

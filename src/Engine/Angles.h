@@ -23,7 +23,7 @@ public:
 		io.readMatrix(data_,"Angles");
 		if (verbose) {
 			std::cerr<<"#Angles read from "<<filename<<"\n";
-			std::cout<<data_;
+			std::cerr<<data_;
 		}
 	}
 

@@ -26,10 +26,14 @@ public:
 			throw PsimagLite::RuntimeError(msg);
 		}
 
-		int n = 0;
+		PsimagLite::String str;
+		getline(fin,str);
+		std::cerr<<"SpaceConnectors::ctor(): Ignoring first line of ";
+		std::cerr<<file<<"\n";
+		SizeType n = 0;
 		fin>>n;
 		fin>>rows_;
-		if (n <= 0 || n>=100) {
+		if (n>=100) {
 			throw PsimagLite::RuntimeError("SpaceConnectors:: too many\n");
 		}
 
