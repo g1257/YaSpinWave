@@ -1,4 +1,4 @@
-#ifndef ENERGY_NC_FUNCTION_H
+#ifndef ENERGY_C_FUNCTION_H
 #define ENERGY_C_FUNCTION_H
 #include "SpaceConnectors.h"
 #include "Vector.h"
