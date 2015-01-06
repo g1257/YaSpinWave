@@ -2,14 +2,14 @@
 #define SPINWAVE_H
 #include "String.h"
 #include <iostream>
-#include "MatrixSpaceCollinear.h"
 
 namespace yasw {
 
-template<typename RealType, typename ComplexOrRealType>
+template<typename MatrixSpaceType>
 class SpinWave {
 
-	typedef MatrixSpaceCollinear<RealType,ComplexOrRealType> MatrixSpaceType;
+	typedef typename MatrixSpaceType::RealType RealType;
+	typedef typename MatrixSpaceType::ComplexOrRealType ComplexOrRealType;
 	typedef typename MatrixSpaceType::SpaceConnectorsType SpaceConnectorsType;
 	typedef typename MatrixSpaceType::AnglesType AnglesType;
 	typedef typename MatrixSpaceType::MatrixComplexOrRealType MatrixComplexOrRealType;

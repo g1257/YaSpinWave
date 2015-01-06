@@ -1,6 +1,7 @@
 #include <iostream>
 #include <unistd.h>
 #include "String.h"
+#include "MatrixSpaceCollinear.h"
 #include "SpinWave.h"
 
 void usage(const char *progName)
@@ -12,7 +13,8 @@ int main(int argc, char** argv)
 {
 	typedef double RealType;
 	typedef std::complex<RealType> ComplexType;
-	typedef yasw::SpinWave<RealType,ComplexType> SpinWaveType;
+	typedef yasw::MatrixSpaceCollinear<RealType,ComplexType> MatrixSpaceType;
+	typedef yasw::SpinWave<MatrixSpaceType> SpinWaveType;
 
 	int opt;
 	PsimagLite::String jfile;
