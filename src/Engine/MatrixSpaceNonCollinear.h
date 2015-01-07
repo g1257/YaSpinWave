@@ -27,7 +27,7 @@ public:
 	{
 		SizeType lda = common_.rows();
 		for (SizeType i = 0; i < lda; ++i) {
-			fillUmatrix(u_[i]);
+			fillUmatrix(i);
 		}
 
 		for (SizeType i = 0; i < common_.size(); ++i) {
@@ -57,12 +57,15 @@ private:
 		SizeType lda = common_.rows();
 		for (SizeType i = 0; i < lda; ++i) {
 			for (SizeType j = 0; j < lda; ++j) {
-
-				if (common_.a(i,j) < 0)
-					m(i,j+lda) = m(i+lda,j) = common_.J(i,j,ind);
-
-				if (common_.a(i,j) > 0)
-					m(i,j) = m(i+lda,j+lda) = common_.J(i,j,ind);
+				RealType type = rotatedA(i,j);
+				int aRotI = (common_.theta(i) < M_PI*0.5) ? 1 : -1;
+				if (type < 0) {
+					m(i,j+lda) = m(i+lda,j) = bminus(aRotI,i,j,ind);
+					m(i,j) = m(i+lda,j+lda) = aminus(aRotI,i,j,ind);
+				} else {
+					m(i,j) = m(i+lda,j+lda) = aplus(aRotI,i,j,ind);
+					m(i,j+lda) = m(i+lda,j) = bplus(aRotI,i,j,ind);
+				}
 
 				if (common_.isCentralCell(ind) && i == j)
 					m(i,i) = m(i+lda,i+lda) = diagonal(i);
@@ -87,6 +90,30 @@ private:
 		return -sum;
 	}
 
+	ComplexType aplus(int aRotI, SizeType i, SizeType j, SizeType ind) const
+	{
+		if (aRotI < 0) return std::conj(aplus(1,i,j,ind));
+		return 0;
+	}
+
+	ComplexType bplus(int aRotI, SizeType i, SizeType j, SizeType ind) const
+	{
+		if (aRotI < 0) return std::conj(bplus(1,i,j,ind));
+		return 0;
+	}
+
+	ComplexType aminus(int aRotI, SizeType i, SizeType j, SizeType ind) const
+	{
+		if (aRotI < 0) return std::conj(aminus(1,i,j,ind));
+		ComplexType tmp = bplus(1,i,j,ind);
+		return tmp + std::conj(tmp);
+	}
+
+	ComplexType bminus(int aRotI, SizeType i, SizeType j, SizeType ind) const
+	{
+		return aplus(aRotI,i,j,ind);
+	}
+
 	ComplexType xi(SizeType i) const
 	{
 		ComplexType x(u_[i](2,0),-u_[i](2,1));
@@ -99,9 +126,23 @@ private:
 		return (x < M_PI*0.5) ? 1.0 : -1.0;
 	}
 
-	void fillUmatrix(MatrixRealType& u) const
+	void fillUmatrix(SizeType i)
 	{
-
+		assert(i < u_.size());
+		MatrixRealType& u = u_[i];
+		assert(u.n_row() == u.n_col());
+		assert(u.n_row() == 3);
+		RealType theta = common_.theta(i);
+		RealType phi = common_.phi(i);
+		u(0,0) = cos(theta)*cos(phi);
+		u(0,1) = cos(theta)*sin(phi);
+		u(0,2) = -sin(theta);
+		u(1,0) = -sin(phi);
+		u(1,1) = cos(phi);
+		u(1,2) = 0;
+		u(2,0) = sin(theta) * cos(phi);
+		u(2,1) = sin(theta) * sin(phi);
+		u(2,2) = cos(theta);
 	}
 
 	MatrixSpaceCommonType common_;

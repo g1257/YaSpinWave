@@ -32,7 +32,9 @@ public:
 
 	RealType a(SizeType i, SizeType j) const { return a_(i,j); }
 
-	RealType theta(SizeType i) const {return a_.theta(i); }
+	const RealType& theta(SizeType i) const {return a_.theta(i); }
+
+	const RealType& phi(SizeType i) const {return a_.phi(i); }
 
 	ComplexOrRealType J(SizeType i, SizeType j,SizeType ind) const
 	{

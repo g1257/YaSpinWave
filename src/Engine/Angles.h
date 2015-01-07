@@ -33,9 +33,14 @@ public:
 		return cos(data_(i,0))*cos(data_(j,0));
 	}
 
-	RealType theta(SizeType i) const
+	const RealType& theta(SizeType i) const
 	{
 		return data_(i,0);
+	}
+
+	const RealType& phi(SizeType i) const
+	{
+		return data_(0,i);
 	}
 
 private:
