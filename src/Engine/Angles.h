@@ -12,9 +12,10 @@ class Angles {
 
 	typedef yasw::InputCheck InputCheckType;
 	typedef PsimagLite::InputNg<InputCheckType> InputType;
-	typedef PsimagLite::Matrix<RealType> MatrixType;
 
 public:
+
+	typedef PsimagLite::Matrix<RealType> MatrixType;
 
 	Angles(PsimagLite::String filename,bool verbose = true)
 	{
@@ -30,6 +31,11 @@ public:
 	RealType operator()(SizeType i, SizeType j) const
 	{
 		return cos(data_(i,0))*cos(data_(j,0));
+	}
+
+	RealType theta(SizeType i) const
+	{
+		return data_(i,0);
 	}
 
 private:
