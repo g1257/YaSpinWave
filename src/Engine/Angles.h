@@ -40,7 +40,7 @@ public:
 
 	const RealType& phi(SizeType i) const
 	{
-		return data_(0,i);
+		return data_(i,1);
 	}
 
 private:

@@ -27,6 +27,7 @@ public:
 	{
 		SizeType lda = common_.rows();
 		for (SizeType i = 0; i < lda; ++i) {
+			u_[i].resize(3,3);
 			fillUmatrix(i);
 		}
 
@@ -83,7 +84,7 @@ private:
 		for (SizeType ind = 0; ind < common_.size(); ++ind) {
 			for (SizeType j = 0; j < lda; ++j) {
 				RealType factor = std::real(xiistar * xi(j)) + taui * u_[j](2,2);
-				sum += common_.J(i,j,ind)*rotatedA(i,j)*factor;
+				sum += common_.J(i,j,ind)*factor;
 			}
 		}
 
@@ -93,13 +94,18 @@ private:
 	ComplexType aplus(int aRotI, SizeType i, SizeType j, SizeType ind) const
 	{
 		if (aRotI < 0) return std::conj(aplus(1,i,j,ind));
-		return 0;
+		ComplexType tmp = std::conj(alpha(i)) * alpha(j);
+		tmp += std::conj(beta(j))*beta(i);
+		tmp += 2.0*std::conj(chi(i))*chi(j);
+		return tmp * common_.J(i,j,ind);
 	}
 
 	ComplexType bplus(int aRotI, SizeType i, SizeType j, SizeType ind) const
 	{
 		if (aRotI < 0) return std::conj(bplus(1,i,j,ind));
-		return 0;
+		ComplexType tmp = std::conj(alpha(i)) * beta(j);
+		tmp += chi(i)*chi(j);
+		return tmp * common_.J(i,j,ind);
 	}
 
 	ComplexType aminus(int aRotI, SizeType i, SizeType j, SizeType ind) const
@@ -143,6 +149,28 @@ private:
 		u(2,0) = sin(theta) * cos(phi);
 		u(2,1) = sin(theta) * sin(phi);
 		u(2,2) = cos(theta);
+	}
+
+	ComplexType alpha(SizeType i) const
+	{
+		return alphaOrBeta(i,1,-1);
+	}
+
+	ComplexType beta(SizeType i) const
+	{
+		return alphaOrBeta(i,-1,1);
+	}
+
+	ComplexType alphaOrBeta(SizeType i, int s1, int s2) const
+	{
+		RealType re = u_[i](0,0) + u_[i](1,1)*s1;
+		RealType im = u_[i](1,0) + u_[i](0,1)*s2;
+		return 0.5*ComplexType(re,im);
+	}
+
+	ComplexType chi(SizeType i) const
+	{
+		return 0.5*ComplexType(u_[i](2,0),-u_[i](2,1));
 	}
 
 	MatrixSpaceCommonType common_;
