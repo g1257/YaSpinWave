@@ -74,7 +74,7 @@ private:
 			}
 		}
 
-		return sum;
+		return -sum;
 	}
 
 	MatrixSpaceCommonType common_;
