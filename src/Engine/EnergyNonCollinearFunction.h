@@ -78,8 +78,7 @@ public:
 	void minimize(ConfigurationType& config)
 	{
 		data_ = config;
-		SizeType lda = sc_.rows();
-		assert(data_.size()+2 == 2*lda);
+		assert(data_.size()+2 == 2*sc_.rows());
 
 		int maxIter = 100;
 		PsimagLite::Minimizer<RealType,ThisType> min(*this, maxIter);
