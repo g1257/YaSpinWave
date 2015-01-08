@@ -104,8 +104,9 @@ private:
 	{
 		if (aRotI < 0) return std::conj(bplus(1,i,j,ind));
 		ComplexType tmp = std::conj(alpha(i)) * beta(j);
-		tmp += chi(i)*chi(j);
-		return tmp * common_.J(i,j,ind);
+		tmp += std::conj(beta(i))*alpha(j);
+		tmp += 2.0*chi(i)*chi(j);
+		return 0.5*tmp * common_.J(i,j,ind);
 	}
 
 	ComplexType aminus(int aRotI, SizeType i, SizeType j, SizeType ind) const
@@ -122,8 +123,7 @@ private:
 
 	ComplexType xi(SizeType i) const
 	{
-		ComplexType x(u_[i](2,0),-u_[i](2,1));
-		return 0.5*x;
+		return ComplexType(u_[i](0,2),u_[i](1,2));
 	}
 
 	RealType rotatedA(SizeType i, SizeType j) const
