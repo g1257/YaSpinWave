@@ -11,9 +11,45 @@ class EnergyCollinearFunction {
 	typedef yasw::SpaceConnectors<RealType,ComplexOrRealType> SpaceConnectorsType;
 	typedef unsigned long long int  LongSizeType;
 
+	class Configuration {
+
+	public:
+
+		Configuration(SizeType size, SizeType seed = 0)
+		    : data_(0)
+		{
+			if (seed > 0) {
+				PsimagLite::String str("EnergyCollinearFunction: No seed support yet");
+				str +=" for collinear configuration\n";
+				throw PsimagLite::RuntimeError(str);
+			}
+
+			SizeType hilbert = 1;
+			hilbert <<= size;
+			if (hilbert >= sizeof(LongSizeType)) {
+				PsimagLite::String str("EnergyCollinearFunction: Configuration is");
+				str += " too big\n";
+				throw PsimagLite::RuntimeError(str);
+			}
+		}
+
+		void fromRaw(LongSizeType x)
+		{
+			data_ = x;
+		}
+
+		LongSizeType& operator()() { return data_; }
+
+		const LongSizeType& operator()() const { return data_; }
+
+	private:
+
+		LongSizeType data_;
+	};
+
 public:
 
-	typedef LongSizeType ConfigurationType;
+	typedef Configuration ConfigurationType;
 
 	EnergyCollinearFunction(PsimagLite::String jfile)
 	    : sc_(jfile)
@@ -28,7 +64,7 @@ public:
 		for (SizeType ket = 0; ket < total; ++ket) {
 			RealType energy = this->operator()(ket);
 			if (energy < minEnergy) {
-				config = ket;
+				config.fromRaw(ket);
 				minEnergy = energy;
 			}
 		}
@@ -36,7 +72,7 @@ public:
 		std::cout<<"Angles\n";
 		std::cout<<lda<<" 2\n";
 		for (SizeType i = 0; i < lda; ++i) {
-			int si = valueAt(config,i);
+			int si = valueAt(config(),i);
 			if (si == 1)
 				std::cout<<"0 0\n";
 			else
@@ -44,9 +80,9 @@ public:
 		}
 	}
 
-private:
-
 	SizeType size() const { return sc_.rows(); }
+
+private:
 
 	RealType operator()(LongSizeType ket) const
 	{

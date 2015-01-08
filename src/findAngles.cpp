@@ -11,13 +11,12 @@ void usage(const char *progName)
 }
 
 template<typename EnergyFunctionType>
-void main2(PsimagLite::String jfile)
+void main2(PsimagLite::String jfile, int seed)
 {
 	EnergyFunctionType energy(jfile);
-	typename EnergyFunctionType::ConfigurationType minConfig(0);
+	typename EnergyFunctionType::ConfigurationType minConfig(energy.size(),seed);
 
 	energy.minimize(minConfig);
-	std::cerr<<"#Found config for minimization: "<<minConfig<<"\n";
 }
 
 int main(int argc, char** argv)
@@ -32,11 +31,14 @@ int main(int argc, char** argv)
 	int opt;
 	PsimagLite::String jfile;
 	bool collinear = false;
-
-	while ((opt = getopt(argc, argv,"j:c")) != -1) {
+	int seed = 1234;
+	while ((opt = getopt(argc, argv,"j:s:c")) != -1) {
 		switch (opt) {
 		case 'j':
 			jfile = optarg;
+			break;
+		case 's':
+			seed = atoi(optarg);
 			break;
 		case 'c':
 			collinear = true;
@@ -53,8 +55,8 @@ int main(int argc, char** argv)
 	}
 
 	if (collinear) {
-		main2<EnergyCollinearFunctionType>(jfile);
+		main2<EnergyCollinearFunctionType>(jfile,seed);
 	} else {
-		main2<EnergyNonCollinearFunctionType>(jfile);
+		main2<EnergyNonCollinearFunctionType>(jfile,seed);
 	}
 }

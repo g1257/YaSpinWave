@@ -13,51 +13,92 @@ class EnergyNonCollinearFunction {
 	typedef yasw::SpaceConnectors<RealType,ComplexOrRealType> SpaceConnectorsType;
 	typedef EnergyNonCollinearFunction<RealType,ComplexOrRealType> ThisType;
 
+	class Configuration {
+
+	public:
+
+		typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
+
+		Configuration(SizeType twiceTheSites,int seed = 0)
+		    : data_(twiceTheSites,0.0)
+		{
+			if (seed > 0)
+				randomize(seed);
+		}
+
+		void print(std::ostream& os) const
+		{
+			SizeType lda = static_cast<SizeType>(data_.size()*0.5);
+			os<<lda<<" 2\n";
+			for (SizeType i = 0; i < lda; ++i) {
+				os<<data_[2*i]<<" "<<data_[2*i+1]<<"\n";
+			}
+		}
+
+		void fromRaw(RealType* data, SizeType n)
+		{
+			assert(data_.size() == n);
+
+			for (SizeType i = 0; i < n; ++i)
+				data_[i] = data[i];
+		}
+
+		VectorRealType& operator()() { return data_; }
+
+		const VectorRealType& operator()() const { return data_; }
+
+		SizeType size() const { return data_.size(); }
+
+	private:
+
+		void randomize(int seed)
+		{
+			PsimagLite::MersenneTwister rng(seed);
+			SizeType lda = static_cast<SizeType>(data_.size()*0.5);
+			for (SizeType i = 0; i < lda; ++i) {
+				data_[2*i] = rng() * M_PI;
+				data_[2*i+1] = rng() * 2.0*M_PI;
+			}
+		}
+
+		VectorRealType data_;
+	};
+
 public:
 
 	typedef RealType FieldType;
-	typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
-	typedef VectorRealType ConfigurationType;
+	typedef typename Configuration::VectorRealType VectorRealType;
+	typedef Configuration ConfigurationType;
 
 	EnergyNonCollinearFunction(PsimagLite::String jfile)
-	    : sc_(jfile),data_(2*sc_.rows())
+	    : sc_(jfile),data_(0)
 	{}
 
 	void minimize(ConfigurationType& config)
 	{
-		PsimagLite::MersenneTwister rng(1234);
-		SizeType lda = size();
+		data_ = config;
+		SizeType lda = sc_.rows();
 		assert(data_.size() == 2*lda);
-
-		for (SizeType i = 0; i < lda; ++i) {
-			data_[2*i] = rng() * M_PI;
-			data_[2*i+1] = rng() * 2.0*M_PI;
-		}
 
 		int maxIter = 100;
 		PsimagLite::Minimizer<RealType,ThisType> min(*this, maxIter);
-		int used = min.simplex(config);
+		int used = min.simplex(config());
 		std::cerr<<"EnergyNonCollinearFunction::minimize(): done after ";
 		std::cerr<<used<<" iterations.\n";
 
 		std::cout<<"Angles\n";
-		std::cout<<lda<<" 2\n";
-		for (SizeType i = 0; i < lda; ++i) {
-			std::cout<<data_[2*i]<<" "<<data_[2*i+1]<<"\n";
-		}
+		data_.print(std::cout);
 
 		config = data_;
 	}
 
-	SizeType size() const { return sc_.rows(); }
+	SizeType size() const { return 2*sc_.rows(); }
 
 	FieldType operator()(FieldType* data, SizeType n)
 	{
-		assert(n == size());
-		FieldType sum = 0;
-		for (SizeType i = 0; i < n; ++i)
-			data_[i] = data[i];
+		data_.fromRaw(data, n);
 
+		FieldType sum = 0;
 		for (SizeType i = 0; i < sc_.size(); ++i) {
 			sum += energyThisCell(i);
 		}
@@ -70,13 +111,13 @@ private:
 	FieldType energyThisCell(SizeType ind) const
 	{
 		RealType sum = 0;
-		SizeType lda = size();
+		SizeType lda = sc_.rows();
 		VectorRealType vi(3,0);
 		VectorRealType vj(3,0);
 		for (SizeType i = 0; i < lda; ++i) {
-			buildVector(vi,data_,i);
+			buildVector(vi,data_(),i);
 			for (SizeType j = 0; j < lda; ++j) {
-				buildVector(vj,data_,j);
+				buildVector(vj,data_(),j);
 				sum += std::real(sc_(i,j,ind))*scalarProduct(vi,vj);
 			}
 		}
@@ -97,7 +138,7 @@ private:
 	}
 
 	SpaceConnectorsType sc_;
-	VectorRealType data_;
+	ConfigurationType data_;
 };
 
 }
