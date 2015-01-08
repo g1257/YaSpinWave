@@ -30,6 +30,7 @@ class EnergyNonCollinearFunction {
 		{
 			SizeType lda = static_cast<SizeType>(data_.size()*0.5);
 			os<<lda<<" 2\n";
+			os<<"0 0\n";
 			for (SizeType i = 0; i < lda; ++i) {
 				os<<data_[2*i]<<" "<<data_[2*i+1]<<"\n";
 			}
@@ -78,7 +79,7 @@ public:
 	{
 		data_ = config;
 		SizeType lda = sc_.rows();
-		assert(data_.size() == 2*lda);
+		assert(data_.size()+2 == 2*lda);
 
 		int maxIter = 100;
 		PsimagLite::Minimizer<RealType,ThisType> min(*this, maxIter);
@@ -92,7 +93,11 @@ public:
 		config = data_;
 	}
 
-	SizeType size() const { return 2*sc_.rows(); }
+	SizeType size() const
+	{
+		assert(sc_.rows() > 1);
+		return 2*(sc_.rows()-1);
+	}
 
 	FieldType operator()(FieldType* data, SizeType n)
 	{
@@ -129,7 +134,14 @@ private:
 	                 const VectorRealType& src,
 	                 int i) const
 	{
-		SizeType x = i*2;
+		if (i == 0) {
+			dst[0] = dst[1] = 0;
+			dst[2] = 1;
+			return;
+		}
+
+		SizeType ii = i - 1;
+		SizeType x = ii*2;
 		assert(dst.size() == 3);
 		assert(src.size() > x+1);
 		dst[0] = sin(src[x])*cos(src[1+x]);

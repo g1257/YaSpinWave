@@ -21,12 +21,12 @@ class EnergyCollinearFunction {
 			if (seed > 0) {
 				PsimagLite::String str("EnergyCollinearFunction: No seed support yet");
 				str +=" for collinear configuration\n";
-				throw PsimagLite::RuntimeError(str);
+				std::cerr<<"WARNING "<<str;
 			}
 
 			SizeType hilbert = 1;
 			hilbert <<= size;
-			if (hilbert >= sizeof(LongSizeType)) {
+			if (hilbert >= 256*sizeof(LongSizeType)) {
 				PsimagLite::String str("EnergyCollinearFunction: Configuration is");
 				str += " too big\n";
 				throw PsimagLite::RuntimeError(str);

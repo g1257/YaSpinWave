@@ -7,7 +7,7 @@
 
 void usage(const char *progName)
 {
-	std::cerr<<"Usage: "<<progName<<" -j file [-c]\n";
+	std::cerr<<"Usage: "<<progName<<" -j file [-s seed | -c]\n";
 }
 
 template<typename EnergyFunctionType>
