@@ -71,8 +71,8 @@ private:
 	{
 		RealType sum = 0;
 		SizeType lda = size();
-		VectorRealType vi(3);
-		VectorRealType vj(3);
+		VectorRealType vi(3,0);
+		VectorRealType vj(3,0);
 		for (SizeType i = 0; i < lda; ++i) {
 			buildVector(vi,data_,i);
 			for (SizeType j = 0; j < lda; ++j) {
