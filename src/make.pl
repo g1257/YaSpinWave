@@ -10,19 +10,13 @@ my @drivers = ("findAngles","anglesToMatrix");
 
 my $lapack = " ";
 #Make::findLapack();
-backupMakefile();
+Make::backupMakefile();
 writeMakefile();
 make();
 
 sub make
 {
 	system("make");
-}
-
-sub backupMakefile
-{
-	system("cp Makefile Makefile.bak") if (-r "Makefile");
-	print "Backup of Makefile in Makefile.bak\n";
 }
 
 sub writeMakefile
