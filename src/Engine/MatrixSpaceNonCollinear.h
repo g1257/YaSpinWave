@@ -58,15 +58,9 @@ private:
 		SizeType lda = common_.rows();
 		for (SizeType i = 0; i < lda; ++i) {
 			for (SizeType j = 0; j < lda; ++j) {
-				RealType type = rotatedA(i,j);
-				int aRotI = (common_.theta(i) < M_PI*0.5) ? 1 : -1;
-				if (type < 0) {
-					m(i,j+lda) = m(i+lda,j) = bminus(aRotI,i,j,ind);
-					m(i,j) = m(i+lda,j+lda) = aminus(aRotI,i,j,ind);
-				} else {
-					m(i,j) = m(i+lda,j+lda) = aplus(aRotI,i,j,ind);
-					m(i,j+lda) = m(i+lda,j) = bplus(aRotI,i,j,ind);
-				}
+
+				m(i,j) = m(i+lda,j+lda) = aplus(i,j,ind);
+				m(i,j+lda) = m(i+lda,j) = bplus(i,j,ind);
 
 				if (common_.isCentralCell(ind) && i == j)
 					m(i,i) = m(i+lda,i+lda) = diagonal(i);
@@ -91,45 +85,25 @@ private:
 		return -sum;
 	}
 
-	ComplexType aplus(int aRotI, SizeType i, SizeType j, SizeType ind) const
+	ComplexType aplus(SizeType i, SizeType j, SizeType ind) const
 	{
-		if (aRotI < 0) return std::conj(aplus(1,i,j,ind));
 		ComplexType tmp = std::conj(alpha(i)) * alpha(j);
 		tmp += std::conj(beta(j))*beta(i);
 		tmp += 2.0*std::conj(chi(i))*chi(j);
 		return tmp * common_.J(i,j,ind);
 	}
 
-	ComplexType bplus(int aRotI, SizeType i, SizeType j, SizeType ind) const
+	ComplexType bplus(SizeType i, SizeType j, SizeType ind) const
 	{
-		if (aRotI < 0) return std::conj(bplus(1,i,j,ind));
 		ComplexType tmp = std::conj(alpha(i)) * beta(j);
 		tmp += std::conj(beta(i))*alpha(j);
 		tmp += 2.0*chi(i)*chi(j);
-		return 0.5*tmp * common_.J(i,j,ind);
-	}
-
-	ComplexType aminus(int aRotI, SizeType i, SizeType j, SizeType ind) const
-	{
-		if (aRotI < 0) return std::conj(aminus(1,i,j,ind));
-		ComplexType tmp = bplus(1,i,j,ind);
-		return tmp + std::conj(tmp);
-	}
-
-	ComplexType bminus(int aRotI, SizeType i, SizeType j, SizeType ind) const
-	{
-		return aplus(aRotI,i,j,ind);
+		return tmp * common_.J(i,j,ind);
 	}
 
 	ComplexType xi(SizeType i) const
 	{
 		return ComplexType(u_[i](0,2),u_[i](1,2));
-	}
-
-	RealType rotatedA(SizeType i, SizeType j) const
-	{
-		RealType x = fabs(common_.theta(i)-common_.theta(j));
-		return (x < M_PI*0.5) ? 1.0 : -1.0;
 	}
 
 	void fillUmatrix(SizeType i)
@@ -141,13 +115,13 @@ private:
 		RealType theta = common_.theta(i);
 		RealType phi = common_.phi(i);
 		u(0,0) = cos(theta)*cos(phi);
-		u(0,1) = cos(theta)*sin(phi);
-		u(0,2) = -sin(theta);
-		u(1,0) = -sin(phi);
+		u(0,1) = -sin(phi);
+		u(0,2) = -sin(theta)*cos(phi);
+		u(1,0) = cos(theta)*sin(phi);
 		u(1,1) = cos(phi);
-		u(1,2) = 0;
-		u(2,0) = sin(theta) * cos(phi);
-		u(2,1) = sin(theta) * sin(phi);
+		u(1,2) = -sin(theta)*sin(phi);
+		u(2,0) = sin(theta);
+		u(2,1) = 0;
 		u(2,2) = cos(theta);
 	}
 
