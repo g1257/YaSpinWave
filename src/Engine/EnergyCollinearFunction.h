@@ -24,9 +24,7 @@ class EnergyCollinearFunction {
 				std::cerr<<"WARNING "<<str;
 			}
 
-			SizeType hilbert = 1;
-			hilbert <<= size;
-			if (hilbert >= 256*sizeof(LongSizeType)) {
+			if (size >= 256*sizeof(LongSizeType)) {
 				PsimagLite::String str("EnergyCollinearFunction: Configuration is");
 				str += " too big\n";
 				throw PsimagLite::RuntimeError(str);
