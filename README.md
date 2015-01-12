@@ -18,8 +18,7 @@ file COPYING.
 
 # Please cite this work
 
-YaSpinWave is a free and open source  
-spin-wave code.
+YaSpinWave is a free and open source spin-wave code.
 The full software license for YaSpinWave version 1.0.0 
 can be found in
 file COPYING. 

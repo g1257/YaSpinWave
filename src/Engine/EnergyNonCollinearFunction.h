@@ -30,7 +30,7 @@ class EnergyNonCollinearFunction {
 		void print(std::ostream& os) const
 		{
 			SizeType lda = static_cast<SizeType>(data_.size()*0.5);
-			os<<lda<<" 2\n";
+			os<<(lda+1)<<" 2\n";
 			os<<"0 0\n";
 			for (SizeType i = 0; i < lda; ++i) {
 				os<<data_[2*i]<<" "<<data_[2*i+1]<<"\n";
@@ -86,6 +86,8 @@ public:
 		MinimizerType min(*this, minParams.maxIter,minParams.verbose);
 		int used = min.simplex(config(), minParams.delta, minParams.tol);
 		data_ = config;
+		std::cerr<<"Minimizer params\n";
+		std::cerr<<minParams;
 		std::cerr<<"EnergyNonCollinearFunction::minimize(): ";
 		if (min.status() == MinimizerType::GSL_SUCCESS) {
 			std::cerr<<" converged after ";

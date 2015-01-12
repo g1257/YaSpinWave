@@ -20,6 +20,16 @@ struct MinimizerParams {
 	bool verbose;
 };
 
+
+template<typename RealType>
+std::ostream& operator<<(std::ostream& os, const MinimizerParams<RealType>& m)
+{
+	os<<"maxIter= "<<m.maxIter<<"\n";
+	os<<"delta= "<<m.delta<<"\n";
+	os<<"tolerance= "<<m.tol<<"\n";
+	os<<"verbose= "<<m.verbose<<"\n";
+	return os;
+}
 } // namespace yasw
 
 #endif // MINIMIZERPARAMS_H
