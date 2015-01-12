@@ -4,6 +4,7 @@
 #include "Vector.h"
 #include "Minimizer.h"
 #include "MersenneTwister.h"
+#include "MinimizerParams.h"
 
 namespace yasw {
 
@@ -22,8 +23,8 @@ class EnergyNonCollinearFunction {
 		Configuration(SizeType twiceTheSites,int seed = 0)
 		    : data_(twiceTheSites,0.0)
 		{
-			if (seed > 0)
-				randomize(seed);
+			if (seed == 0) seed = 1234;
+			randomize(seed);
 		}
 
 		void print(std::ostream& os) const
@@ -70,21 +71,30 @@ public:
 	typedef RealType FieldType;
 	typedef typename Configuration::VectorRealType VectorRealType;
 	typedef Configuration ConfigurationType;
+	typedef PsimagLite::Minimizer<RealType,ThisType> MinimizerType;
 
 	EnergyNonCollinearFunction(PsimagLite::String jfile)
 	    : sc_(jfile),data_(0)
 	{}
 
-	void minimize(ConfigurationType& config)
+	void minimize(ConfigurationType& config,
+	              const MinimizerParams<RealType>& minParams)
 	{
 		data_ = config;
 		assert(data_.size()+2 == 2*sc_.rows());
 
-		int maxIter = 100;
-		PsimagLite::Minimizer<RealType,ThisType> min(*this, maxIter);
-		int used = min.simplex(config());
-		std::cerr<<"EnergyNonCollinearFunction::minimize(): done after ";
-		std::cerr<<used<<" iterations.\n";
+		MinimizerType min(*this, minParams.maxIter,minParams.verbose);
+		int used = min.simplex(config(), minParams.delta, minParams.tol);
+		data_ = config;
+		std::cerr<<"EnergyNonCollinearFunction::minimize(): ";
+		if (min.status() == MinimizerType::GSL_SUCCESS) {
+			std::cerr<<" converged after ";
+		} else {
+			std::cerr<<"NOT CONVERGED after ";
+		}
+
+		std::cerr<<used<<" iterations. Minimum="<<operator()(&(data_()[0]),data_.size());
+		std::cerr<<"\n";
 
 		std::cout<<"Angles\n";
 		data_.print(std::cout);

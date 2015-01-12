@@ -55,7 +55,8 @@ public:
 	    : sc_(jfile)
 	{}
 
-	void minimize(ConfigurationType& config) const
+	template<typename DummyType>
+	void minimize(ConfigurationType& config, const DummyType&) const
 	{
 		RealType minEnergy = 1e10;
 		SizeType total = 1;
