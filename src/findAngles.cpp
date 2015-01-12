@@ -13,6 +13,7 @@ void usage(const char *progName, const yasw::MinimizerParams<double>* minParams)
 	std::cerr<<"\t-p precision (default is 8)\n";
 	std::cerr<<"\t-c Use collinear\n";
 	std::cerr<<"Below options only for non collinear\n";
+	std::cerr<<"\t-a anglesFile (initial angles for minimizer)\n";
 	std::cerr<<"\t-s seed\n";
 	std::cerr<<"\t-m maxIter (max. iterations for minimizer)\n";
 	std::cerr<<"\t-d delta (x advancement for minimizer)\n";
@@ -24,11 +25,12 @@ void usage(const char *progName, const yasw::MinimizerParams<double>* minParams)
 
 template<typename EnergyFunctionType>
 void main2(PsimagLite::String jfile,
+           PsimagLite::String afile,
            int seed,
            const yasw::MinimizerParams<double>& minParams)
 {
 	EnergyFunctionType energy(jfile);
-	typename EnergyFunctionType::ConfigurationType minConfig(energy.size(),seed);
+	typename EnergyFunctionType::ConfigurationType minConfig(energy.size(),afile,seed);
 
 	energy.minimize(minConfig,minParams);
 }
@@ -51,7 +53,8 @@ int main(int argc, char** argv)
 	RealType tol = 1e-4;
 	bool verbose = false;
 	RealType prec = 8;
-	while ((opt = getopt(argc, argv,"j:s:m:d:t:p:cv")) != -1) {
+	PsimagLite::String afile("");
+	while ((opt = getopt(argc, argv,"j:s:m:d:t:p:a:cv")) != -1) {
 		switch (opt) {
 		case 'j':
 			jfile = optarg;
@@ -77,6 +80,9 @@ int main(int argc, char** argv)
 		case 'p':
 			prec = atoi(optarg);
 			break;
+		case 'a':
+			afile = optarg;
+			break;
 		default:
 			usage(argv[0],0);
 			return 1;
@@ -93,8 +99,8 @@ int main(int argc, char** argv)
 	}
 
 	if (collinear) {
-		main2<EnergyCollinearFunctionType>(jfile,seed,minParams);
+		main2<EnergyCollinearFunctionType>(jfile,afile,seed,minParams);
 	} else {
-		main2<EnergyNonCollinearFunctionType>(jfile,seed,minParams);
+		main2<EnergyNonCollinearFunctionType>(jfile,afile,seed,minParams);
 	}
 }

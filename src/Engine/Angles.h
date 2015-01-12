@@ -43,6 +43,8 @@ public:
 		return data_(i,1);
 	}
 
+	SizeType size() const { return data_.n_row(); }
+
 private:
 
 	InputCheckType inputCheck_;

@@ -15,7 +15,7 @@ class EnergyCollinearFunction {
 
 	public:
 
-		Configuration(SizeType size, SizeType seed = 0)
+		Configuration(SizeType size, PsimagLite::String afile = "", SizeType seed = 0)
 		    : data_(0)
 		{
 			if (seed > 0) {
@@ -28,6 +28,12 @@ class EnergyCollinearFunction {
 				PsimagLite::String str("EnergyCollinearFunction: Configuration is");
 				str += " too big\n";
 				throw PsimagLite::RuntimeError(str);
+			}
+
+			if (afile != "") {
+				PsimagLite::String str("EnergyCollinearFunction: No angles support yet");
+				str +=" for collinear configuration\n";
+				std::cerr<<"WARNING "<<str;
 			}
 		}
 

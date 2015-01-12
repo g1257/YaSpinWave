@@ -5,6 +5,7 @@
 #include "Minimizer.h"
 #include "MersenneTwister.h"
 #include "MinimizerParams.h"
+#include "Angles.h"
 
 namespace yasw {
 
@@ -20,9 +21,41 @@ class EnergyNonCollinearFunction {
 
 		typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
 
-		Configuration(SizeType twiceTheSites,int seed = 0)
+		Configuration(SizeType twiceTheSites,
+		              PsimagLite::String afile = "" ,
+		              int seed = 0)
 		    : data_(twiceTheSites,0.0)
 		{
+			if (seed > 0 && afile != "") {
+				PsimagLite::String msg("Configuration: Providing both ");
+				msg += " seed and angles file is an error\n";
+				throw PsimagLite::RuntimeError(msg);
+			}
+
+			if (afile != "") {
+				Angles<RealType> angles(afile);
+				if (angles.size()*2 != twiceTheSites + 2) {
+					PsimagLite::String msg("EnergyCollinearFunction: angles file");
+					msg += " has different size than j file\n";
+					throw PsimagLite::RuntimeError(msg);
+				}
+
+				if (fabs(angles.theta(0))>1e-6) {
+					PsimagLite::String msg("EnergyCollinearFunction: FATAL: ");
+					msg += "First angle of " + afile + " is not with theta=0\n";
+					throw PsimagLite::RuntimeError(msg);
+				}
+
+				for (SizeType i = 1; i < angles.size(); ++i) {
+					SizeType twiceIndex = 2*(i - 1);
+					if (twiceIndex + 1 >= data_.size()) break;
+					data_[twiceIndex] = angles.theta(i);
+					data_[twiceIndex+1] = angles.phi(i);
+				}
+
+				return;
+			}
+
 			if (seed == 0) seed = 1234;
 			randomize(seed);
 		}
@@ -84,6 +117,8 @@ public:
 		assert(data_.size()+2 == 2*sc_.rows());
 
 		MinimizerType min(*this, minParams.maxIter,minParams.verbose);
+		std::cerr<<"Initial config\n";
+		config.print(std::cerr);
 		int used = min.simplex(config(), minParams.delta, minParams.tol);
 		data_ = config;
 		std::cerr<<"Minimizer params\n";
