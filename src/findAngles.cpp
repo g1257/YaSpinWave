@@ -6,16 +6,20 @@
 #include "EnergyNonCollinearFunction.h"
 #include "MinimizerParams.h"
 
-void usage(const char *progName)
+void usage(const char *progName, const yasw::MinimizerParams<double>* minParams)
 {
 	std::cerr<<"Usage: "<<progName<<" [options] -j file \n";
 	std::cerr<<"\t-v verbose\n";
+	std::cerr<<"\t-p precision (default is 8)\n";
 	std::cerr<<"\t-c Use collinear\n";
-	std::cerr<<"\tBelow options only for non collinear\n";
+	std::cerr<<"Below options only for non collinear\n";
 	std::cerr<<"\t-s seed\n";
 	std::cerr<<"\t-m maxIter (max. iterations for minimizer)\n";
 	std::cerr<<"\t-d delta (x advancement for minimizer)\n";
 	std::cerr<<"\t-t tolerance (y tolerance for minimizer)\n";
+	if (!minParams) return;
+	std::cerr<<"Defaults are\n";
+	std::cerr<<(*minParams);
 }
 
 template<typename EnergyFunctionType>
@@ -46,7 +50,8 @@ int main(int argc, char** argv)
 	RealType delta = 1e-1;
 	RealType tol = 1e-4;
 	bool verbose = false;
-	while ((opt = getopt(argc, argv,"j:s:m:d:t:cv")) != -1) {
+	RealType prec = 8;
+	while ((opt = getopt(argc, argv,"j:s:m:d:t:p:cv")) != -1) {
 		switch (opt) {
 		case 'j':
 			jfile = optarg;
@@ -69,18 +74,23 @@ int main(int argc, char** argv)
 		case 'v':
 			verbose = true;
 			break;
+		case 'p':
+			prec = atoi(optarg);
+			break;
 		default:
-			usage(argv[0]);
+			usage(argv[0],0);
 			return 1;
 		}
 	}
 
+	std::cerr.precision(prec);
+	std::cout.precision(prec);
+	yasw::MinimizerParams<RealType> minParams(maxIter,delta,tol,verbose);
+
 	if (jfile == "") {
-		usage(argv[0]);
+		usage(argv[0],&minParams);
 		return 1;
 	}
-
-	yasw::MinimizerParams<RealType> minParams(maxIter,delta,tol,verbose);
 
 	if (collinear) {
 		main2<EnergyCollinearFunctionType>(jfile,seed,minParams);

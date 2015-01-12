@@ -95,7 +95,8 @@ public:
 			std::cerr<<"NOT CONVERGED after ";
 		}
 
-		std::cerr<<used<<" iterations. Minimum="<<operator()(&(data_()[0]),data_.size());
+		std::cerr<<used<<" iterations.\n";
+		std::cerr<<"Energy at Minimum= "<<operator()(&(data_()[0]),data_.size());
 		std::cerr<<"\n";
 
 		std::cout<<"Angles\n";
