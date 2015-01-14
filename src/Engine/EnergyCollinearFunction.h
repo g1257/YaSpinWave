@@ -15,23 +15,38 @@ class EnergyCollinearFunction {
 
 	public:
 
-		Configuration(SizeType size, PsimagLite::String afile = "", SizeType seed = 0)
-		    : data_(0)
+		Configuration(SizeType size,
+		              SizeType fixedSpins,
+		              PsimagLite::String afile = "",
+		              SizeType seed = 0)
+		    : data_(0),fixedSpins_(fixedSpins),mask_(0)
 		{
+			if (fixedSpins >= size) {
+				PsimagLite::String str("Configuration: ");
+				str += "Too many fixed spins\n";
+				throw PsimagLite::RuntimeError(str);
+			}
+
+			LongSizeType tmp = 1;
+			for (SizeType i = 0; i < fixedSpins_; ++i) {
+				mask_ |= tmp;
+				tmp <<= 1;
+			}
+
 			if (seed > 0) {
-				PsimagLite::String str("EnergyCollinearFunction: No seed support yet");
+				PsimagLite::String str("Configuration: No seed support yet");
 				str +=" for collinear configuration\n";
 				std::cerr<<"WARNING "<<str;
 			}
 
 			if (size >= 256*sizeof(LongSizeType)) {
-				PsimagLite::String str("EnergyCollinearFunction: Configuration is");
+				PsimagLite::String str("Configuration: Configuration is");
 				str += " too big\n";
 				throw PsimagLite::RuntimeError(str);
 			}
 
 			if (afile != "") {
-				PsimagLite::String str("EnergyCollinearFunction: No angles support yet");
+				PsimagLite::String str("Configuration: No angles support yet");
 				str +=" for collinear configuration\n";
 				std::cerr<<"WARNING "<<str;
 			}
@@ -42,6 +57,11 @@ class EnergyCollinearFunction {
 			data_ = x;
 		}
 
+		bool isValid(LongSizeType x) const
+		{
+			return ((mask_&x) == mask_);
+		}
+
 		LongSizeType& operator()() { return data_; }
 
 		const LongSizeType& operator()() const { return data_; }
@@ -49,6 +69,8 @@ class EnergyCollinearFunction {
 	private:
 
 		LongSizeType data_;
+		SizeType fixedSpins_;
+		LongSizeType mask_;
 	};
 
 public:
@@ -67,6 +89,7 @@ public:
 		SizeType lda = size();
 		total <<= lda;
 		for (SizeType ket = 0; ket < total; ++ket) {
+			if (!config.isValid(ket)) continue;
 			RealType energy = this->operator()(ket);
 			if (energy < minEnergy) {
 				config.fromRaw(ket);
@@ -117,7 +140,7 @@ private:
 	{
 		LongSizeType mask = 1;
 		mask <<= i;
-		return (mask & ket) ? -1 : 1;
+		return (mask & ket) ? 1 : -1;
 	}
 
 	SpaceConnectorsType sc_;

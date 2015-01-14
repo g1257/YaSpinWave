@@ -11,6 +11,7 @@ void usage(const char *progName, const yasw::MinimizerParams<double>* minParams)
 	std::cerr<<"Usage: "<<progName<<" [options] -j file \n";
 	std::cerr<<"\t-v verbose\n";
 	std::cerr<<"\t-p precision (default is 8)\n";
+	std::cerr<<"\t-f spins (number of spins to fix, default is 1)\n";
 	std::cerr<<"\t-c Use collinear\n";
 	std::cerr<<"Below options only for non collinear\n";
 	std::cerr<<"\t-a anglesFile (initial angles for minimizer)\n";
@@ -25,12 +26,16 @@ void usage(const char *progName, const yasw::MinimizerParams<double>* minParams)
 
 template<typename EnergyFunctionType>
 void main2(PsimagLite::String jfile,
+           SizeType fixedSpins,
            PsimagLite::String afile,
            int seed,
            const yasw::MinimizerParams<double>& minParams)
 {
 	EnergyFunctionType energy(jfile);
-	typename EnergyFunctionType::ConfigurationType minConfig(energy.size(),afile,seed);
+	typename EnergyFunctionType::ConfigurationType minConfig(energy.size(),
+	                                                         fixedSpins,
+	                                                         afile,
+	                                                         seed);
 
 	energy.minimize(minConfig,minParams);
 }
@@ -54,7 +59,8 @@ int main(int argc, char** argv)
 	bool verbose = false;
 	RealType prec = 8;
 	PsimagLite::String afile("");
-	while ((opt = getopt(argc, argv,"j:s:m:d:t:p:a:cv")) != -1) {
+	SizeType fixedSpins = 1;
+	while ((opt = getopt(argc, argv,"j:s:m:d:t:p:a:F:cv")) != -1) {
 		switch (opt) {
 		case 'j':
 			jfile = optarg;
@@ -83,6 +89,9 @@ int main(int argc, char** argv)
 		case 'a':
 			afile = optarg;
 			break;
+		case 'F':
+			fixedSpins = atoi(optarg);
+			break;
 		default:
 			usage(argv[0],0);
 			return 1;
@@ -99,8 +108,8 @@ int main(int argc, char** argv)
 	}
 
 	if (collinear) {
-		main2<EnergyCollinearFunctionType>(jfile,afile,seed,minParams);
+		main2<EnergyCollinearFunctionType>(jfile,fixedSpins,afile,seed,minParams);
 	} else {
-		main2<EnergyNonCollinearFunctionType>(jfile,afile,seed,minParams);
+		main2<EnergyNonCollinearFunctionType>(jfile,fixedSpins,afile,seed,minParams);
 	}
 }

@@ -22,10 +22,17 @@ class EnergyNonCollinearFunction {
 		typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
 
 		Configuration(SizeType twiceTheSites,
+		              SizeType fixedSpins = 1,
 		              PsimagLite::String afile = "" ,
 		              int seed = 0)
-		    : data_(twiceTheSites,0.0)
+		    : data_(twiceTheSites,0.0),fixedSpins_(fixedSpins)
 		{
+			if (fixedSpins >= static_cast<SizeType>(0.5*twiceTheSites)) {
+				PsimagLite::String str("Configuration: ");
+				str += "Too many fixed spins\n";
+				throw PsimagLite::RuntimeError(str);
+			}
+
 			if (seed > 0 && afile != "") {
 				PsimagLite::String msg("Configuration: Providing both ");
 				msg += " seed and angles file is an error\n";
@@ -35,13 +42,13 @@ class EnergyNonCollinearFunction {
 			if (afile != "") {
 				Angles<RealType> angles(afile);
 				if (angles.size()*2 != twiceTheSites + 2) {
-					PsimagLite::String msg("EnergyCollinearFunction: angles file");
+					PsimagLite::String msg("Configuration: angles file");
 					msg += " has different size than j file\n";
 					throw PsimagLite::RuntimeError(msg);
 				}
 
 				if (fabs(angles.theta(0))>1e-6) {
-					PsimagLite::String msg("EnergyCollinearFunction: FATAL: ");
+					PsimagLite::String msg("Configuration: FATAL: ");
 					msg += "First angle of " + afile + " is not with theta=0\n";
 					throw PsimagLite::RuntimeError(msg);
 				}
@@ -97,6 +104,7 @@ class EnergyNonCollinearFunction {
 		}
 
 		VectorRealType data_;
+		SizeType fixedSpins_;
 	};
 
 public:
