@@ -15,13 +15,13 @@ class EnergyCollinearFunction {
 
 	public:
 
-		Configuration(SizeType size,
+		Configuration(SizeType totalSpins,
 		              SizeType fixedSpins,
 		              PsimagLite::String afile = "",
 		              SizeType seed = 0)
 		    : data_(0),fixedSpins_(fixedSpins),mask_(0)
 		{
-			if (fixedSpins >= size) {
+			if (fixedSpins >= totalSpins) {
 				PsimagLite::String str("Configuration: ");
 				str += "Too many fixed spins\n";
 				throw PsimagLite::RuntimeError(str);
@@ -39,7 +39,7 @@ class EnergyCollinearFunction {
 				std::cerr<<"WARNING "<<str;
 			}
 
-			if (size >= 256*sizeof(LongSizeType)) {
+			if (totalSpins >= 256*sizeof(LongSizeType)) {
 				PsimagLite::String str("Configuration: Configuration is");
 				str += " too big\n";
 				throw PsimagLite::RuntimeError(str);
@@ -107,6 +107,8 @@ public:
 				std::cout<<M_PI<<" 0\n";
 		}
 	}
+
+	SizeType totalSpins() const { return sc_.rows(); }
 
 	SizeType size() const { return sc_.rows(); }
 

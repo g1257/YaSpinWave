@@ -19,19 +19,23 @@ class EnergyNonCollinearFunction {
 
 	public:
 
+		typedef Angles<RealType> AnglesType;
 		typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
 
-		Configuration(SizeType twiceTheSites,
-		              SizeType fixedSpins = 1,
+		Configuration(SizeType totalSpins,
+		              SizeType fixedSpins,
 		              PsimagLite::String afile = "" ,
 		              int seed = 0)
-		    : data_(twiceTheSites,0.0),fixedSpins_(fixedSpins)
+		    : fixedSpins_(fixedSpins)
 		{
-			if (fixedSpins >= static_cast<SizeType>(0.5*twiceTheSites)) {
-				PsimagLite::String str("Configuration: ");
-				str += "Too many fixed spins\n";
-				throw PsimagLite::RuntimeError(str);
+
+			if (totalSpins <= fixedSpins) {
+				PsimagLite::String msg("Configuration: ");
+				msg += "Too many fixed spins\n";
+				throw PsimagLite::RuntimeError(msg);
 			}
+
+			data_.resize(2*(totalSpins-fixedSpins),0.0);
 
 			if (seed > 0 && afile != "") {
 				PsimagLite::String msg("Configuration: Providing both ");
@@ -40,21 +44,21 @@ class EnergyNonCollinearFunction {
 			}
 
 			if (afile != "") {
-				Angles<RealType> angles(afile);
-				if (angles.size()*2 != twiceTheSites + 2) {
+				AnglesType angles(afile);
+				if (angles.size() != totalSpins) {
 					PsimagLite::String msg("Configuration: angles file");
 					msg += " has different size than j file\n";
 					throw PsimagLite::RuntimeError(msg);
 				}
 
-				if (fabs(angles.theta(0))>1e-6) {
+				if (!isValidAngles(angles)) {
 					PsimagLite::String msg("Configuration: FATAL: ");
 					msg += "First angle of " + afile + " is not with theta=0\n";
 					throw PsimagLite::RuntimeError(msg);
 				}
 
-				for (SizeType i = 1; i < angles.size(); ++i) {
-					SizeType twiceIndex = 2*(i - 1);
+				for (SizeType i = fixedSpins_; i < angles.size(); ++i) {
+					SizeType twiceIndex = 2*(i - fixedSpins_);
 					if (twiceIndex + 1 >= data_.size()) break;
 					data_[twiceIndex] = angles.theta(i);
 					data_[twiceIndex+1] = angles.phi(i);
@@ -70,8 +74,9 @@ class EnergyNonCollinearFunction {
 		void print(std::ostream& os) const
 		{
 			SizeType lda = static_cast<SizeType>(data_.size()*0.5);
-			os<<(lda+1)<<" 2\n";
-			os<<"0 0\n";
+			os<<(lda+fixedSpins_)<<" 2\n";
+			for (SizeType i = 0; i < fixedSpins_; ++i)
+				os<<"0 0\n";
 			for (SizeType i = 0; i < lda; ++i) {
 				os<<data_[2*i]<<" "<<data_[2*i+1]<<"\n";
 			}
@@ -84,6 +89,8 @@ class EnergyNonCollinearFunction {
 			for (SizeType i = 0; i < n; ++i)
 				data_[i] = data[i];
 		}
+
+		SizeType fixedSpins() const { return fixedSpins_; }
 
 		VectorRealType& operator()() { return data_; }
 
@@ -103,6 +110,14 @@ class EnergyNonCollinearFunction {
 			}
 		}
 
+		bool isValidAngles(const AnglesType& angles) const
+		{
+			for (SizeType i = 0; i < fixedSpins_; ++i)
+				if (fabs(angles.theta(i))>1e-6) return false;
+
+			return true;
+		}
+
 		VectorRealType data_;
 		SizeType fixedSpins_;
 	};
@@ -115,14 +130,20 @@ public:
 	typedef PsimagLite::Minimizer<RealType,ThisType> MinimizerType;
 
 	EnergyNonCollinearFunction(PsimagLite::String jfile)
-	    : sc_(jfile),data_(0)
+	    : sc_(jfile),data_(1,0)
 	{}
 
 	void minimize(ConfigurationType& config,
 	              const MinimizerParams<RealType>& minParams)
 	{
+		if (sc_.rows() <= config.fixedSpins()) {
+			PsimagLite::String msg("Configuration: ");
+			msg += "Too many fixed spins\n";
+			throw PsimagLite::RuntimeError(msg);
+		}
+
 		data_ = config;
-		assert(data_.size()+2 == 2*sc_.rows());
+		assert(data_.size()+2*config.fixedSpins() == 2*sc_.rows());
 
 		MinimizerType min(*this, minParams.maxIter,minParams.verbose);
 		std::cerr<<"Initial config\n";
@@ -148,10 +169,12 @@ public:
 		config = data_;
 	}
 
+	SizeType totalSpins() const { return sc_.rows(); }
+
 	SizeType size() const
 	{
-		assert(sc_.rows() > 1);
-		return 2*(sc_.rows()-1);
+		assert(sc_.rows() > data_.fixedSpins());
+		return 2*(sc_.rows() - data_.fixedSpins());
 	}
 
 	FieldType operator()(FieldType* data, SizeType n)
@@ -189,13 +212,14 @@ private:
 	                 const VectorRealType& src,
 	                 int i) const
 	{
-		if (i == 0) {
+		SizeType fixedSpins = data_.fixedSpins();
+		if (i < fixedSpins) {
 			dst[0] = dst[1] = 0;
 			dst[2] = 1;
 			return;
 		}
 
-		SizeType ii = i - 1;
+		SizeType ii = i - fixedSpins;
 		SizeType x = ii*2;
 		assert(dst.size() == 3);
 		assert(src.size() > x+1);
