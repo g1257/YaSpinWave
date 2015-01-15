@@ -179,6 +179,7 @@ public:
 
 	FieldType operator()(FieldType* data, SizeType n)
 	{
+		canonicalAngles(data,n);
 		data_.fromRaw(data, n);
 
 		FieldType sum = 0;
@@ -226,6 +227,24 @@ private:
 		dst[0] = sin(src[x])*cos(src[1+x]);
 		dst[1] = sin(src[x])*sin(src[1+x]);
 		dst[2] = cos(src[x]);
+	}
+
+	void canonicalAngles(FieldType* data, SizeType n) const
+	{
+		for (SizeType i = 0; i < n; ++i)
+			data[i] = canonicalAngle(data[i],(i&1) > 0);
+	}
+
+	FieldType canonicalAngle(const FieldType& value,bool isPhi) const
+	{
+		FieldType x = value;
+		if (isPhi) {
+			while (x > 2*M_PI) x -= 2*M_PI;
+		}
+
+		while (x < 0) x += 2*M_PI;
+
+		return x;
 	}
 
 	SpaceConnectorsType sc_;

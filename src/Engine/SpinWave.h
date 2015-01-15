@@ -37,7 +37,7 @@ public:
 	void printDynamicMatrix(std::ostream& os)
 	{
 		std::cerr<<"#Here are the "<<matrixSpace_.size();
-		std::cerr<< "Dynamic-factor matrices.\n";
+		std::cerr<< " Dynamic-factor matrices.\n";
 		std::cerr<<"-------------------------------------------------------------\n";
 		os<<"\n";
 		assert(matrixSpace_.size() > 0);
