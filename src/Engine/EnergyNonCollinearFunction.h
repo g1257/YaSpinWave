@@ -210,7 +210,7 @@ private:
 
 	void buildVector(VectorRealType& dst,
 	                 const VectorRealType& src,
-	                 int i) const
+	                 SizeType i) const
 	{
 		SizeType fixedSpins = data_.fixedSpins();
 		if (i < fixedSpins) {

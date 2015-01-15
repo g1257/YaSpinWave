@@ -11,7 +11,7 @@ void usage(const char *progName, const yasw::MinimizerParams<double>* minParams)
 	std::cerr<<"Usage: "<<progName<<" [options] -j file \n";
 	std::cerr<<"\t-v verbose\n";
 	std::cerr<<"\t-p precision (default is 8)\n";
-	std::cerr<<"\t-f spins (number of spins to fix, default is 1)\n";
+	std::cerr<<"\t-F spins (number of spins to fix, default is 1)\n";
 	std::cerr<<"\t-c Use collinear\n";
 	std::cerr<<"Below options only for non collinear\n";
 	std::cerr<<"\t-a anglesFile (initial angles for minimizer)\n";
