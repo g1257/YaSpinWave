@@ -50,7 +50,10 @@ int main(int argc, char** argv)
 	MatrixReciprocalSpaceType m(mfile,verbose);
 
 	MatrixReciprocalSpaceType::VectorRealType q(tokens.size());
-	for (SizeType i = 0; i < q.size(); ++i) q[i] = atof(tokens[i].c_str());
+	for (SizeType i = 0; i < q.size(); ++i) {
+		q[i] = atof(tokens[i].c_str());
+		std::cerr<<"q["<<i<<"]= "<<q[i]<<"\n";
+	}
 
 	MatrixType a = m(q);
 	std::cerr<<a;

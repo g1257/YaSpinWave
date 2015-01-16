@@ -14,6 +14,7 @@ class MatrixReciprocalSpace {
 public:
 
 	typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
+	typedef std::complex<RealType> ComplexType;
 	typedef typename SpaceConnectorsType::MatrixComplexOrRealType MatrixType;
 	typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
 
@@ -27,7 +28,7 @@ public:
 		SizeType rows = sc_.rows();
 		MatrixType m(rows,rows);
 		for (SizeType n = 0; n < cells; ++n) {
-			procThisCell(m,n);
+			procThisCell(m,n,q);
 		}
 
 		return m;
@@ -35,10 +36,16 @@ public:
 
 private:
 
-	void procThisCell(MatrixType& m,SizeType n)
+	void procThisCell(MatrixType& m,SizeType n, const VectorRealType& q)
 	{
-		ComplexOrRealType wqn = 1.0;
-		m += wqn * sc_.getMatrix(n);
+		RealType wqn = 0.0;
+		for (SizeType i = 0; i < q.size(); ++i) {
+			wqn += sc_.nmatrix(n,i) * q[i];
+		}
+
+		wqn *= (2.0 * M_PI);
+
+		m += ComplexType(cos(wqn),sin(wqn)) * sc_.getMatrix(n);
 	}
 
 	SpaceConnectorsType sc_;

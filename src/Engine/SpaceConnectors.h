@@ -105,6 +105,11 @@ public:
 		return data_[ind];
 	}
 
+	const RealType& nmatrix(SizeType ind, SizeType i) const
+	{
+		return nmatrix_(ind,i);
+	}
+
 private:
 
 	void printConnectors(std::ostream& os) const
