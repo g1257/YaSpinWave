@@ -21,8 +21,9 @@ public:
 
 	MatrixSpaceCollinear(PsimagLite::String jfile,
 	                     PsimagLite::String afile,
+	                     bool verbose,
 	                     bool altRotation)
-	    : common_(jfile,afile),data_(common_.size())
+	    : verbose_(verbose),common_(jfile,afile,verbose),data_(common_.size())
 	{
 		if (altRotation) {
 			PsimagLite::String str("MatrixSpaceCollinear: altRotation");
@@ -85,6 +86,7 @@ private:
 		return -sum;
 	}
 
+	bool verbose_;
 	MatrixSpaceCommonType common_;
 	VectorComplexOrRealMatrixType data_;
 }; // MatrixSpaceCollinear

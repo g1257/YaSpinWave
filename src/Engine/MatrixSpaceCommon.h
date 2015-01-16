@@ -18,8 +18,10 @@ public:
 	typedef typename SpaceConnectorsType::VectorComplexOrRealMatrixType
 	VectorComplexOrRealMatrixType;
 
-	MatrixSpaceCommon(PsimagLite::String jfile,PsimagLite::String afile)
-	    : sc_(jfile),a_(afile)
+	MatrixSpaceCommon(PsimagLite::String jfile,
+	                  PsimagLite::String afile,
+	                  bool verbose)
+	    : sc_(jfile,verbose),a_(afile,verbose)
 	{}
 
 	SizeType size() const { return sc_.size(); }

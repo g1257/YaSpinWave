@@ -31,10 +31,11 @@ void main2(PsimagLite::String jfile,
            int seed,
            const yasw::MinimizerParams<double>& minParams)
 {
-	EnergyFunctionType energy(jfile);
+	EnergyFunctionType energy(jfile, minParams.verbose);
 	SizeType totalSpins = energy.totalSpins();
 	typename EnergyFunctionType::ConfigurationType minConfig(totalSpins,
 	                                                         fixedSpins,
+	                                                         minParams.verbose,
 	                                                         afile,
 	                                                         seed);
 

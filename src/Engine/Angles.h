@@ -17,7 +17,7 @@ public:
 
 	typedef PsimagLite::Matrix<RealType> MatrixType;
 
-	Angles(PsimagLite::String filename,bool verbose = true)
+	Angles(PsimagLite::String filename,bool verbose)
 	{
 		InputType::Writeable ioWriteable(filename,inputCheck_);
 		InputType::Readable io(ioWriteable);

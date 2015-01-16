@@ -16,15 +16,21 @@ class SpinWave {
 
 public:
 
-	SpinWave(PsimagLite::String jfile,PsimagLite::String afile, bool altRotation)
-	    : matrixSpace_(jfile,afile,altRotation)
+	SpinWave(PsimagLite::String jfile,
+	         PsimagLite::String afile,
+	         bool verbose,
+	         bool altRotation)
+	    : verbose_(verbose),matrixSpace_(jfile,afile,verbose,altRotation)
 	{}
 
 	void printSpaceMatrices(std::ostream& os)
 	{
-		std::cerr<<"#Here are the "<<matrixSpace_.size();
-		std::cerr<< " Hamiltonian-factor matrices.\n";
-		std::cerr<<"-------------------------------------------------------------\n";
+		if (verbose_) {
+			std::cerr<<"#Here are the "<<matrixSpace_.size();
+			std::cerr<< " Hamiltonian-factor matrices.\n";
+			std::cerr<<"-------------------------------------------------------------\n";
+		}
+
 		os<<"\n";
 		assert(matrixSpace_.size() > 0);
 		os<<matrixSpace_.size()<<" "<<matrixSpace_(0).n_row()<<"\n";
@@ -36,9 +42,12 @@ public:
 
 	void printDynamicMatrix(std::ostream& os)
 	{
-		std::cerr<<"#Here are the "<<matrixSpace_.size();
-		std::cerr<< " Dynamic-factor matrices.\n";
-		std::cerr<<"-------------------------------------------------------------\n";
+		if (verbose_) {
+			std::cerr<<"#Here are the "<<matrixSpace_.size();
+			std::cerr<< " Dynamic-factor matrices.\n";
+			std::cerr<<"-------------------------------------------------------------\n";
+		}
+
 		os<<"\n";
 		assert(matrixSpace_.size() > 0);
 		os<<matrixSpace_.size()<<" "<<matrixSpace_(0).n_row()<<"\n";
@@ -66,6 +75,7 @@ private:
 		}
 	}
 
+	bool verbose_;
 	MatrixSpaceType matrixSpace_;
 }; // SpinWave
 

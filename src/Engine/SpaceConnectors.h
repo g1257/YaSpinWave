@@ -17,7 +17,7 @@ public:
 	typedef typename PsimagLite::Vector<MatrixComplexOrRealType>::Type
 	VectorComplexOrRealMatrixType;
 
-	SpaceConnectors(PsimagLite::String file, bool verbose = true)
+	SpaceConnectors(PsimagLite::String file, bool verbose)
 	    : rows_(0),centralCellIndex_(0)
 	{
 		std::ifstream fin(file.c_str());

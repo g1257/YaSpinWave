@@ -24,8 +24,9 @@ public:
 
 	MatrixSpaceNonCollinear(PsimagLite::String jfile,
 	                        PsimagLite::String afile,
+	                        bool verbose,
 	                        bool altRotation)
-	    : common_(jfile,afile),data_(common_.size()),u_(common_.rows())
+	    : common_(jfile,afile,verbose),data_(common_.size()),u_(common_.rows())
 	{
 		SizeType lda = common_.rows();
 		for (SizeType i = 0; i < lda; ++i) {

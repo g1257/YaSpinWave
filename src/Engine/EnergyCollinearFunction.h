@@ -18,6 +18,7 @@ class EnergyCollinearFunction {
 
 		Configuration(SizeType totalSpins,
 		              SizeType fixedSpins,
+		              bool,
 		              PsimagLite::String afile = "",
 		              SizeType seed = 0)
 		    : data_(0),fixedSpins_(fixedSpins),mask_(0)
@@ -78,8 +79,8 @@ public:
 
 	typedef Configuration ConfigurationType;
 
-	EnergyCollinearFunction(PsimagLite::String jfile)
-	    : sc_(jfile)
+	EnergyCollinearFunction(PsimagLite::String jfile, bool verbose)
+	    : sc_(jfile, verbose)
 	{}
 
 	template<typename DummyType>

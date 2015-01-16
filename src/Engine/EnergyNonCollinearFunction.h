@@ -25,6 +25,7 @@ class EnergyNonCollinearFunction {
 
 		Configuration(SizeType totalSpins,
 		              SizeType fixedSpins,
+		              bool verbose,
 		              PsimagLite::String afile = "" ,
 		              int seed = 0)
 		    : fixedSpins_(fixedSpins)
@@ -45,7 +46,7 @@ class EnergyNonCollinearFunction {
 			}
 
 			if (afile != "") {
-				AnglesType angles(afile);
+				AnglesType angles(afile, verbose);
 				if (angles.size() != totalSpins) {
 					PsimagLite::String msg("Configuration: angles file");
 					msg += " has different size than j file\n";
@@ -130,8 +131,8 @@ public:
 	typedef Configuration ConfigurationType;
 	typedef PsimagLite::Minimizer<RealType,ThisType> MinimizerType;
 
-	EnergyNonCollinearFunction(PsimagLite::String jfile)
-	    : sc_(jfile),data_(1,0)
+	EnergyNonCollinearFunction(PsimagLite::String jfile, bool verbose)
+	    : sc_(jfile, verbose),data_(1,0,verbose)
 	{}
 
 	void minimize(ConfigurationType& config,

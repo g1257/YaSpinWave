@@ -9,6 +9,7 @@ void usage(const char *progName)
 {
 	std::cerr<<"Usage: "<<progName<<" [options] -j file  -a file \n";
 	std::cerr<<"Options\n";
+	std::cerr<<"\t-v Verbose\n";
 	std::cerr<<"\t-c Use algorithm for collinear\n";
 	std::cerr<<"\t-H Compute Hamiltonian only\n";
 	std::cerr<<"\t-A use alternative rotation\n";
@@ -17,17 +18,18 @@ void usage(const char *progName)
 template<typename MatrixSpaceType>
 void main2(PsimagLite::String jfile,
            PsimagLite::String afile,
+           bool verbose,
            bool hOnly,
            bool altRotation)
 {
-	yasw::SpinWave<MatrixSpaceType> sw(jfile,afile,altRotation);
+	yasw::SpinWave<MatrixSpaceType> sw(jfile,afile,verbose,altRotation);
 
 	if (hOnly) {
 		sw.printSpaceMatrices(std::cout);
 		return;
 	}
 
-	sw.printSpaceMatrices(std::cerr);
+	if (verbose) sw.printSpaceMatrices(std::cerr);
 	sw.printDynamicMatrix(std::cout);
 }
 
@@ -44,8 +46,9 @@ int main(int argc, char** argv)
 	bool collinear = false;
 	bool hOnly = false;
 	bool altRotation = false;
+	bool verbose = false;
 
-	while ((opt = getopt(argc, argv,"j:a:cHA")) != -1) {
+	while ((opt = getopt(argc, argv,"j:a:cHAv")) != -1) {
 		switch (opt) {
 		case 'j':
 			jfile = optarg;
@@ -62,6 +65,9 @@ int main(int argc, char** argv)
 		case 'A':
 			altRotation = true;
 			break;
+		case 'v':
+			verbose = true;
+			break;
 		default:
 			usage(argv[0]);
 			return 1;
@@ -74,9 +80,9 @@ int main(int argc, char** argv)
 	}
 
 	if (collinear) {
-		main2<MatrixSpaceCollinearType>(jfile,afile,hOnly,altRotation);
+		main2<MatrixSpaceCollinearType>(jfile,afile,verbose,hOnly,altRotation);
 	} else {
-		main2<MatrixSpaceNonCollinearType>(jfile,afile,hOnly,altRotation);
+		main2<MatrixSpaceNonCollinearType>(jfile,afile,verbose,hOnly,altRotation);
 	}
 }
 
