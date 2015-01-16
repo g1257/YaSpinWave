@@ -42,6 +42,8 @@ public:
 			std::cerr<<"-------------\n";
 		}
 
+		checkHermiticity(a);
+
 		MatrixType vl(10,10), vr(10,10);
 		typename PsimagLite::Vector<ComplexType>::Type eigenvalues(a.n_row());
 		PsimagLite::geev('N','N',a,eigenvalues,vl,vr);
@@ -90,6 +92,25 @@ private:
 		}
 
 		return false;
+	}
+
+	void checkHermiticity(const MatrixType& a) const
+	{
+		MatrixType m = a;
+		SizeType n = m.n_row();
+		SizeType nOver2 = static_cast<SizeType>(n*0.5);
+
+		for (SizeType i = nOver2; i < n; ++i) {
+			for (SizeType j = 0; j < n; ++j) {
+				m(i,j) *= (-1.0);
+			}
+		}
+
+		if (!isHermitian(m,true)) {
+			PsimagLite::String msg("MatrixSpaceNonCollinear: ");
+			msg += "Hamiltonian matrix is not Hermitian\n";
+			throw PsimagLite::RuntimeError(msg);
+		}
 	}
 
 	SpaceConnectorsType sc_;

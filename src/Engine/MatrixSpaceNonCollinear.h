@@ -59,8 +59,10 @@ private:
 		for (SizeType i = 0; i < lda; ++i) {
 			for (SizeType j = 0; j < lda; ++j) {
 
-				m(i,j) = m(i+lda,j+lda) = aplus(i,j,ind);
-				m(i,j+lda) = m(i+lda,j) = bplus(i,j,ind);
+				m(i,j) = aplus(i,j,ind);
+				m(i+lda,j+lda) = aplus(i,j,ind);
+				m(i,j+lda) = bplus(i,j,ind);
+				m(i+lda,j) = std::conj(bplus(i,j,ind));
 
 				if (common_.isCentralCell(ind) && i == j)
 					m(i,i) = m(i+lda,i+lda) = diagonal(i);
@@ -95,7 +97,7 @@ private:
 
 	ComplexType bplus(SizeType i, SizeType j, SizeType ind) const
 	{
-		ComplexType tmp = std::conj(alpha(i)) * beta(j);
+		ComplexType tmp = alpha(i) * std::conj(beta(j));
 		tmp += std::conj(beta(i))*alpha(j);
 		tmp += 2.0*chi(i)*chi(j);
 		return tmp * common_.J(i,j,ind);
