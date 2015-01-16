@@ -15,7 +15,7 @@ int main(int argc, char** argv)
 	typedef double RealType;
 	typedef std::complex<RealType> ComplexType;
 	typedef yasw::MatrixReciprocalSpace<ComplexType> MatrixReciprocalSpaceType;
-	typedef typename MatrixReciprocalSpaceType::MatrixType MatrixType;
+	typedef MatrixReciprocalSpaceType::VectorRealType VectorRealType;
 
 	int opt;
 	PsimagLite::String mfile;
@@ -47,24 +47,22 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	MatrixReciprocalSpaceType m(mfile,verbose);
+	MatrixReciprocalSpaceType matrixReciprocal(mfile,verbose);
 
 	MatrixReciprocalSpaceType::VectorRealType q(tokens.size());
 	for (SizeType i = 0; i < q.size(); ++i) {
 		q[i] = atof(tokens[i].c_str());
-		std::cerr<<"q["<<i<<"]= "<<q[i]<<"\n";
+		if (verbose) std::cerr<<"q["<<i<<"]= "<<q[i]<<"\n";
 	}
 
-	MatrixType a = m(q);
-	std::cerr<<a;
-	std::cerr<<"-------------\n";
+	const VectorRealType& dispersion = matrixReciprocal.dispersion(q);
+	if (dispersion.size() != 2) {
+		PsimagLite::String msg(argv[0]);
+		msg += ": Dispersion size is "+ ttos(dispersion.size()) + "for this q.\n";
+		throw PsimagLite::RuntimeError(msg);
+	}
 
-	MatrixType vl(10,10), vr(10,10);
-	typename PsimagLite::Vector<ComplexType>::Type eigenvalues(a.n_row());
-	PsimagLite::geev('N','N',a,eigenvalues,vl,vr);
-
-	for (SizeType i = 0; i < eigenvalues.size(); ++i)
-		std::cout<<eigenvalues[i]<<"\n";
+	std::cout<<dispersion[0]<<" "<<dispersion[1]<<"\n";
 
 	return 0;
 }

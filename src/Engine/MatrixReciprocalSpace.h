@@ -19,10 +19,10 @@ public:
 	typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
 
 	MatrixReciprocalSpace(PsimagLite::String mfile, bool verbose)
-	    : sc_(mfile,verbose)
+	    : sc_(mfile,verbose),verbose_(verbose)
 	{}
 
-	MatrixType operator()(const VectorRealType& q)
+	MatrixType getMatrix(const VectorRealType& q) const
 	{
 		SizeType cells = sc_.size();
 		SizeType rows = sc_.rows();
@@ -34,9 +34,32 @@ public:
 		return m;
 	}
 
+	VectorRealType dispersion(const VectorRealType& q) const
+	{
+		MatrixType a = getMatrix(q);
+		if (verbose_) {
+			std::cerr<<a;
+			std::cerr<<"-------------\n";
+		}
+
+		MatrixType vl(10,10), vr(10,10);
+		typename PsimagLite::Vector<ComplexType>::Type eigenvalues(a.n_row());
+		PsimagLite::geev('N','N',a,eigenvalues,vl,vr);
+		VectorRealType ev;
+		for (SizeType i = 0; i < eigenvalues.size(); ++i) {
+			if (verbose_) std::cerr<<eigenvalues[i]<<"\n";
+			RealType e = getRealPart(eigenvalues[i]);
+			if (e < 0) continue;
+			if (isInVector(ev,e)) continue;
+			ev.push_back(e);
+		}
+
+		return ev;
+	}
+
 private:
 
-	void procThisCell(MatrixType& m,SizeType n, const VectorRealType& q)
+	void procThisCell(MatrixType& m,SizeType n, const VectorRealType& q) const
 	{
 		RealType wqn = 0.0;
 		for (SizeType i = 0; i < q.size(); ++i) {
@@ -48,8 +71,28 @@ private:
 		m += ComplexType(cos(wqn),sin(wqn)) * sc_.getMatrix(n);
 	}
 
+	RealType getRealPart(ComplexType c) const
+	{
+		if (fabs(std::imag(c)) > 1e-6) {
+			PsimagLite::String msg("MatrixReciprocalSpace::getRealPart(): ");
+			msg += "The number " + ttos(c) + " is not real\n";
+			throw PsimagLite::RuntimeError(msg);
+		}
+
+		return std::real(c);
+	}
+
+	bool isInVector(const VectorRealType& ev, RealType e) const
+	{
+		for (SizeType j = 0; j < ev.size(); ++j) {
+			if (fabs(ev[j]-e) < 1e-4) return true;
+		}
+
+		return false;
+	}
+
 	SpaceConnectorsType sc_;
-	MatrixType data_;
+	bool verbose_;
 };
 
 } // namespace yasw
