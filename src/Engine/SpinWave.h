@@ -16,8 +16,8 @@ class SpinWave {
 
 public:
 
-	SpinWave(PsimagLite::String jfile,PsimagLite::String afile)
-	    : matrixSpace_(jfile,afile)
+	SpinWave(PsimagLite::String jfile,PsimagLite::String afile, bool altRotation)
+	    : matrixSpace_(jfile,afile,altRotation)
 	{}
 
 	void printSpaceMatrices(std::ostream& os)

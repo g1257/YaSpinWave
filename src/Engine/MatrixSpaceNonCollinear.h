@@ -22,13 +22,15 @@ public:
 	typedef typename SpaceConnectorsType::VectorComplexOrRealMatrixType
 	VectorComplexOrRealMatrixType;
 
-	MatrixSpaceNonCollinear(PsimagLite::String jfile,PsimagLite::String afile)
+	MatrixSpaceNonCollinear(PsimagLite::String jfile,
+	                        PsimagLite::String afile,
+	                        bool altRotation)
 	    : common_(jfile,afile),data_(common_.size()),u_(common_.rows())
 	{
 		SizeType lda = common_.rows();
 		for (SizeType i = 0; i < lda; ++i) {
 			u_[i].resize(3,3);
-			fillUmatrix(i);
+			fillUmatrix(i,altRotation);
 		}
 
 		for (SizeType i = 0; i < common_.size(); ++i) {
@@ -66,7 +68,6 @@ private:
 
 				if (common_.isCentralCell(ind) && i == j)
 					m(i,i) = m(i+lda,i+lda) = diagonal(i);
-
 			}
 		}
 	}
@@ -108,7 +109,7 @@ private:
 		return ComplexType(u_[i](0,2),u_[i](1,2));
 	}
 
-	void fillUmatrix(SizeType i)
+	void fillUmatrix(SizeType i, bool altRotation)
 	{
 		assert(i < u_.size());
 		MatrixRealType& u = u_[i];
@@ -116,15 +117,27 @@ private:
 		assert(u.n_row() == 3);
 		RealType theta = common_.theta(i);
 		RealType phi = common_.phi(i);
-		u(0,0) = cos(theta)*cos(phi);
-		u(0,1) = -sin(phi);
-		u(0,2) = -sin(theta)*cos(phi);
-		u(1,0) = cos(theta)*sin(phi);
-		u(1,1) = cos(phi);
-		u(1,2) = -sin(theta)*sin(phi);
-		u(2,0) = sin(theta);
-		u(2,1) = 0;
-		u(2,2) = cos(theta);
+		if (!altRotation) {
+			u(0,0) = cos(theta)*cos(phi);
+			u(0,1) = -sin(phi);
+			u(0,2) = -sin(theta)*cos(phi);
+			u(1,0) = cos(theta)*sin(phi);
+			u(1,1) = cos(phi);
+			u(1,2) = -sin(theta)*sin(phi);
+			u(2,0) = sin(theta);
+			u(2,1) = 0;
+			u(2,2) = cos(theta);
+		} else {
+			u(0,0) = cos(theta)*cos(phi);
+			u(0,1) = cos(theta)*sin(phi);
+			u(0,2) = -sin(theta);
+			u(1,0) = -sin(phi);
+			u(1,1) = cos(phi);
+			u(1,2) = 0;
+			u(2,0) = sin(theta)*cos(phi);
+			u(2,1) = sin(theta)*sin(phi);
+			u(2,2) = cos(theta);
+		}
 	}
 
 	ComplexType alpha(SizeType i) const

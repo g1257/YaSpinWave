@@ -42,7 +42,13 @@ public:
 			std::cerr<<"-------------\n";
 		}
 
-		checkHermiticity(a);
+		if (!isHermitian(a,true)) {
+			PsimagLite::String msg("MatrixSpaceNonCollinear: ");
+			msg += "Hamiltonian matrix is not Hermitian\n";
+			throw PsimagLite::RuntimeError(msg);
+		}
+
+		multiplyByG(a);
 
 		MatrixType vl(10,10), vr(10,10);
 		typename PsimagLite::Vector<ComplexType>::Type eigenvalues(a.n_row());
@@ -94,22 +100,15 @@ private:
 		return false;
 	}
 
-	void checkHermiticity(const MatrixType& a) const
+	void multiplyByG(MatrixType& a) const
 	{
-		MatrixType m = a;
-		SizeType n = m.n_row();
+		SizeType n = a.n_row();
 		SizeType nOver2 = static_cast<SizeType>(n*0.5);
 
 		for (SizeType i = nOver2; i < n; ++i) {
 			for (SizeType j = 0; j < n; ++j) {
-				m(i,j) *= (-1.0);
+				a(i,j) *= (-1.0);
 			}
-		}
-
-		if (!isHermitian(m,true)) {
-			PsimagLite::String msg("MatrixSpaceNonCollinear: ");
-			msg += "Hamiltonian matrix is not Hermitian\n";
-			throw PsimagLite::RuntimeError(msg);
 		}
 	}
 
