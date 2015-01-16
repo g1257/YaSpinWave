@@ -95,7 +95,7 @@ private:
 
 	ComplexType bplus(SizeType i, SizeType j, SizeType ind) const
 	{
-		ComplexType tmp = alpha(i) * std::conj(beta(j));
+		ComplexType tmp = std::conj(alpha(i)) * beta(j);
 		tmp += std::conj(beta(i))*alpha(j);
 		tmp += 2.0*chi(i)*chi(j);
 		return tmp * common_.J(i,j,ind);
