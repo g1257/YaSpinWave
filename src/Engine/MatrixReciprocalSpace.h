@@ -54,6 +54,7 @@ public:
 			ev.push_back(e);
 		}
 
+		std::sort(ev.begin(),ev.end());
 		return ev;
 	}
 
