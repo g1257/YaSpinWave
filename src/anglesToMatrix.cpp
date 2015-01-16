@@ -23,9 +23,8 @@ int main(int argc, char** argv)
 {
 	typedef double RealType;
 	typedef std::complex<RealType> ComplexType;
-	typedef yasw::MatrixSpaceCollinear<RealType,ComplexType> MatrixSpaceCollinearType;
-	typedef yasw::MatrixSpaceNonCollinear<RealType,ComplexType>
-	        MatrixSpaceNonCollinearType;
+	typedef yasw::MatrixSpaceCollinear<ComplexType> MatrixSpaceCollinearType;
+	typedef yasw::MatrixSpaceNonCollinear<ComplexType> MatrixSpaceNonCollinearType;
 
 	int opt;
 	PsimagLite::String jfile;
@@ -60,3 +59,4 @@ int main(int argc, char** argv)
 		main2<MatrixSpaceNonCollinearType>(jfile,afile);
 	}
 }
+

@@ -4,14 +4,14 @@
 
 namespace yasw {
 
-template<typename RealType_, typename ComplexOrRealType_>
+template<typename ComplexOrRealType_>
 class MatrixSpaceCollinear {
 
 public:
 
-	typedef RealType_ RealType;
 	typedef ComplexOrRealType_ ComplexOrRealType;
-	typedef MatrixSpaceCommon<RealType,ComplexOrRealType> MatrixSpaceCommonType;
+	typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
+	typedef MatrixSpaceCommon<ComplexOrRealType> MatrixSpaceCommonType;
 	typedef typename MatrixSpaceCommonType::SpaceConnectorsType SpaceConnectorsType;
 	typedef typename MatrixSpaceCommonType::AnglesType AnglesType;
 	typedef typename MatrixSpaceCommonType::MatrixComplexOrRealType

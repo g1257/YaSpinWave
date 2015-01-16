@@ -5,12 +5,13 @@
 
 namespace yasw {
 
-template<typename RealType, typename ComplexOrRealType>
+template<typename ComplexOrRealType>
 class MatrixSpaceCommon {
 
 public:
 
-	typedef SpaceConnectors<RealType,ComplexOrRealType> SpaceConnectorsType;
+	typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
+	typedef SpaceConnectors<ComplexOrRealType> SpaceConnectorsType;
 	typedef Angles<RealType> AnglesType;
 	typedef typename SpaceConnectorsType::MatrixComplexOrRealType
 	MatrixComplexOrRealType;

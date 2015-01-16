@@ -5,10 +5,11 @@
 
 namespace yasw {
 
-template<typename RealType, typename ComplexOrRealType>
+template<typename ComplexOrRealType>
 class EnergyCollinearFunction {
 
-	typedef yasw::SpaceConnectors<RealType,ComplexOrRealType> SpaceConnectorsType;
+	typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
+	typedef yasw::SpaceConnectors<ComplexOrRealType> SpaceConnectorsType;
 	typedef unsigned long long int  LongSizeType;
 
 	class Configuration {
@@ -151,3 +152,4 @@ private:
 }
 
 #endif // ENERGY_C_FUNCTION_H
+

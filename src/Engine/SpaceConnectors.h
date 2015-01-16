@@ -6,11 +6,12 @@
 
 namespace yasw {
 
-template<typename RealType, typename ComplexOrRealType>
+template<typename ComplexOrRealType>
 class SpaceConnectors {
 
 public:
 
+	typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
 	typedef PsimagLite::Matrix<RealType> MatrixRealType;
 	typedef PsimagLite::Matrix<ComplexOrRealType> MatrixComplexOrRealType;
 	typedef typename PsimagLite::Vector<MatrixComplexOrRealType>::Type
@@ -97,6 +98,12 @@ public:
 	SizeType size() const { return data_.size(); }
 
 	SizeType rows() const {return rows_; }
+
+	const MatrixComplexOrRealType& getMatrix(SizeType ind) const
+	{
+		assert(ind < data_.size());
+		return data_[ind];
+	}
 
 private:
 

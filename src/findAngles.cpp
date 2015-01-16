@@ -45,10 +45,8 @@ int main(int argc, char** argv)
 {
 	typedef double RealType;
 	typedef std::complex<RealType> ComplexType;
-	typedef yasw::EnergyCollinearFunction<RealType,ComplexType>
-	        EnergyCollinearFunctionType;
-	typedef yasw::EnergyNonCollinearFunction<RealType,ComplexType>
-	        EnergyNonCollinearFunctionType;
+	typedef yasw::EnergyCollinearFunction<ComplexType> EnergyCollinearFunctionType;
+	typedef yasw::EnergyNonCollinearFunction<ComplexType> EnergyNonCollinearFunctionType;
 
 	int opt;
 	PsimagLite::String jfile;
@@ -114,3 +112,4 @@ int main(int argc, char** argv)
 		main2<EnergyNonCollinearFunctionType>(jfile,fixedSpins,afile,seed,minParams);
 	}
 }
+

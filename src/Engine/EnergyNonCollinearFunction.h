@@ -9,11 +9,12 @@
 
 namespace yasw {
 
-template<typename RealType, typename ComplexOrRealType>
+template<typename ComplexOrRealType>
 class EnergyNonCollinearFunction {
 
-	typedef yasw::SpaceConnectors<RealType,ComplexOrRealType> SpaceConnectorsType;
-	typedef EnergyNonCollinearFunction<RealType,ComplexOrRealType> ThisType;
+	typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
+	typedef yasw::SpaceConnectors<ComplexOrRealType> SpaceConnectorsType;
+	typedef EnergyNonCollinearFunction<ComplexOrRealType> ThisType;
 
 	class Configuration {
 
