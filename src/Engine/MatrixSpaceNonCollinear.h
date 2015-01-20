@@ -26,12 +26,15 @@ public:
 	                        PsimagLite::String afile,
 	                        bool verbose,
 	                        bool altRotation)
-	    : common_(jfile,afile,verbose),data_(common_.size()),u_(common_.rows())
+	    : common_(jfile,afile,verbose),
+	      data_(common_.size()),
+	      u_(common_.rows()),
+	      alt_(altRotation)
 	{
 		SizeType lda = common_.rows();
 		for (SizeType i = 0; i < lda; ++i) {
 			u_[i].resize(3,3);
-			fillUmatrix(i,altRotation);
+			fillUmatrix(i);
 		}
 
 		for (SizeType i = 0; i < common_.size(); ++i) {
@@ -62,10 +65,12 @@ private:
 		for (SizeType i = 0; i < lda; ++i) {
 			for (SizeType j = 0; j < lda; ++j) {
 
-				m(i,j) = aplus(i,j,ind);
-				m(i+lda,j+lda) = aplus(i,j,ind);
-				m(i,j+lda) = bplus(i,j,ind);
-				m(i+lda,j) = std::conj(bplus(i,j,ind));
+				ComplexOrRealType tmp = (alt_) ? 2.0*gcoeff(i,j,1) :  aplus(i,j,ind);
+				m(i,j) = m(i+lda,j+lda)  = tmp;
+
+				tmp = (alt_) ? 2.0*gcoeff(i,j,-1) :  bplus(i,j,ind);
+				m(i,j+lda) = tmp;
+				m(i+lda,j) = std::conj(tmp);
 
 				if (common_.isCentralCell(ind) && i == j)
 					m(i,i) = m(i+lda,i+lda) = diagonal(i);
@@ -75,6 +80,8 @@ private:
 
 	ComplexOrRealType diagonal(SizeType i) const
 	{
+		if (alt_) return diagonalAlt(i);
+
 		ComplexOrRealType sum = 0;
 		SizeType lda = common_.rows();
 		RealType taui = u_[i](2,2);
@@ -110,7 +117,7 @@ private:
 		return ComplexType(u_[i](0,2),u_[i](1,2));
 	}
 
-	void fillUmatrix(SizeType i, bool altRotation)
+	void fillUmatrix(SizeType i)
 	{
 		assert(i < u_.size());
 		MatrixRealType& u = u_[i];
@@ -118,7 +125,7 @@ private:
 		assert(u.n_row() == 3);
 		RealType theta = common_.theta(i);
 		RealType phi = common_.phi(i);
-		if (!altRotation) {
+		if (!alt_) {
 			u(0,0) = cos(theta)*cos(phi);
 			u(0,1) = -sin(phi);
 			u(0,2) = -sin(theta)*cos(phi);
@@ -163,9 +170,20 @@ private:
 		return 0.5*ComplexType(u_[i](2,0),-u_[i](2,1));
 	}
 
+	ComplexOrRealType gcoeff(SizeType i, SizeType j, int sign) const
+	{
+		return 0;
+	}
+
+	ComplexOrRealType diagonalAlt(SizeType i) const
+	{
+		return 0;
+	}
+
 	MatrixSpaceCommonType common_;
 	VectorComplexOrRealMatrixType data_;
 	VectorMatrixRealType u_;
+	bool alt_;
 }; // MatrixSpaceNonCollinear
 
 } // namespace yasw
