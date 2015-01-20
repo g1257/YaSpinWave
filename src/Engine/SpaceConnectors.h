@@ -72,6 +72,27 @@ public:
 
 		fin.close();
 
+		if (!centralSeen) {
+			data_.resize(n+1);
+			data_[n].resize(rows_,rows_);
+			for (SizeType j = 0; j < rows_; ++j) {
+				for (SizeType k = 0; k < rows_; ++k) {
+					data_[n](j,k) = 0.0;
+				}
+			}
+
+			MatrixRealType nmatrix(n+1,3);
+			for (SizeType i = 0; i < n; ++i)
+				for (SizeType j = 0; j < 3; ++j)
+					nmatrix(i,j) = nmatrix_(i,j);
+
+			for (SizeType j = 0; j < 3; ++j)
+				nmatrix(n,j) = 0.0;
+
+			nmatrix_ = nmatrix;
+			centralCellIndex_ = n;
+		}
+
 		if (verbose) printConnectors(std::cerr);
 	}
 
