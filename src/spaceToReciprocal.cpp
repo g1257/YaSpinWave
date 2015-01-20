@@ -56,9 +56,13 @@ int main(int argc, char** argv)
 	}
 
 	const VectorRealType& dispersion = matrixReciprocal.dispersion(q);
+	for (SizeType i = 0; i < dispersion.size(); ++i)
+		std::cerr<<dispersion[i]<<" ";
+	std::cerr<<"\n";
+
 	if (dispersion.size() != 2) {
 		PsimagLite::String msg(argv[0]);
-		msg += ": Dispersion size is "+ ttos(dispersion.size()) + "for this q.\n";
+		msg += ": Dispersion size is "+ ttos(dispersion.size()) + " for this q.\n";
 		throw PsimagLite::RuntimeError(msg);
 	}
 

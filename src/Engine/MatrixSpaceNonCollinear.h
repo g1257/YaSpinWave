@@ -65,10 +65,12 @@ private:
 		for (SizeType i = 0; i < lda; ++i) {
 			for (SizeType j = 0; j < lda; ++j) {
 
-				ComplexOrRealType tmp = (alt_) ? 2.0*gcoeff(i,j,1) :  aplus(i,j,ind);
+				ComplexOrRealType tmp = (alt_) ? gcoeff(i,j,ind,1) :  aplus(i,j,ind);
+				if (std::norm(tmp)<1e-10) tmp = 0;
 				m(i,j) = m(i+lda,j+lda)  = tmp;
 
-				tmp = (alt_) ? 2.0*gcoeff(i,j,-1) :  bplus(i,j,ind);
+				tmp = (alt_) ? gcoeff(i,j,ind,-1) :  bplus(i,j,ind);
+				if (std::norm(tmp)<1e-10) tmp = 0;
 				m(i,j+lda) = tmp;
 				m(i+lda,j) = std::conj(tmp);
 
@@ -80,8 +82,6 @@ private:
 
 	ComplexOrRealType diagonal(SizeType i) const
 	{
-		if (alt_) return diagonalAlt(i);
-
 		ComplexOrRealType sum = 0;
 		SizeType lda = common_.rows();
 		RealType taui = u_[i](2,2);
@@ -89,6 +89,7 @@ private:
 		for (SizeType ind = 0; ind < common_.size(); ++ind) {
 			for (SizeType j = 0; j < lda; ++j) {
 				RealType factor = std::real(xiistar * xi(j)) + taui * u_[j](2,2);
+				if (alt_) factor = -diagonalFactor(j);
 				sum += common_.J(i,j,ind)*factor;
 			}
 		}
@@ -170,14 +171,24 @@ private:
 		return 0.5*ComplexType(u_[i](2,0),-u_[i](2,1));
 	}
 
-	ComplexOrRealType gcoeff(SizeType i, SizeType j, int sign) const
+	ComplexType gcoeff(SizeType i, SizeType j, SizeType ind, int sign) const
 	{
-		return 0;
+		MatrixRealType uinverse = u_[j];
+		inverse(uinverse);
+		MatrixRealType fmatrix = u_[i] * uinverse;
+		RealType re = fmatrix(0,0) + fmatrix(1,1)*sign;
+		RealType im = fmatrix(0,1) - fmatrix(1,0)*sign;
+		ComplexOrRealType factor = -0.5*common_.J(i,j,ind);
+		return factor*ComplexType(re,-im);
 	}
 
-	ComplexOrRealType diagonalAlt(SizeType i) const
+	RealType diagonalFactor(SizeType i) const
 	{
-		return 0;
+		assert(alt_);
+		MatrixRealType uinverse = u_[i];
+		inverse(uinverse);
+		MatrixRealType fmatrix = u_[i] * uinverse;
+		return fmatrix(2,2);
 	}
 
 	MatrixSpaceCommonType common_;
