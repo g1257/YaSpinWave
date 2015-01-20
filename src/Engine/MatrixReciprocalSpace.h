@@ -38,6 +38,7 @@ public:
 	{
 		MatrixType a = getMatrix(q);
 		if (verbose_) {
+			std::cerr<<"Hamiltonian matrix in k-space:\n";
 			std::cerr<<a;
 			std::cerr<<"-------------\n";
 		}
