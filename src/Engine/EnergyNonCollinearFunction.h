@@ -86,7 +86,7 @@ class EnergyNonCollinearFunction {
 
 		void fromRaw(RealType* data, SizeType n)
 		{
-			assert(data_.size() == n);
+			if (data_.size() != n) data_.resize(n);
 
 			for (SizeType i = 0; i < n; ++i)
 				data_[i] = data[i];
