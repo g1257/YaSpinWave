@@ -51,6 +51,12 @@ public:
 
 		multiplyByG(a);
 
+		if (verbose_) {
+			std::cerr<<"Dynamic matrix in k-space:\n";
+			std::cerr<<a;
+			std::cerr<<"-------------\n";
+		}
+
 		MatrixType vl(10,10), vr(10,10);
 		typename PsimagLite::Vector<ComplexType>::Type eigenvalues(a.n_row());
 		PsimagLite::geev('N','N',a,eigenvalues,vl,vr);

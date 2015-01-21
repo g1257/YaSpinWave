@@ -70,12 +70,9 @@ private:
 				m(i,j) = m(i+lda,j+lda)  = tmp;
 
 				tmp = (alt_) ? -gcoeff(i,j,ind,-1) :  bplus(i,j,ind);
-				ComplexOrRealType tmp2 = (alt_) ? -std::conj(gcoeff(j,i,ind,-1)) :  
-				std::conj(bplus(j,i,ind));
 				if (std::norm(tmp)<1e-10) tmp = 0;
-				if (std::norm(tmp2)<1e-10) tmp2 = 0;
 				m(i,j+lda) = tmp;
-				m(i+lda,j) = tmp2;
+				m(i+lda,j) = std::conj(tmp);
 
 				if (common_.isCentralCell(ind) && i == j)
 					m(i,i) = m(i+lda,i+lda) = diagonal(i);
