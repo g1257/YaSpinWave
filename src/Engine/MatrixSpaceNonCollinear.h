@@ -70,9 +70,12 @@ private:
 				m(i,j) = m(i+lda,j+lda)  = tmp;
 
 				tmp = (alt_) ? -gcoeff(i,j,ind,-1) :  bplus(i,j,ind);
+				ComplexOrRealType tmp2 = (alt_) ? -std::conj(gcoeff(j,i,ind,-1)) :  
+				std::conj(bplus(j,i,ind));
 				if (std::norm(tmp)<1e-10) tmp = 0;
+				if (std::norm(tmp2)<1e-10) tmp2 = 0;
 				m(i,j+lda) = tmp;
-				m(i+lda,j) = std::conj(tmp);
+				m(i+lda,j) = tmp2;
 
 				if (common_.isCentralCell(ind) && i == j)
 					m(i,i) = m(i+lda,i+lda) = diagonal(i);
@@ -109,7 +112,7 @@ private:
 	{
 		ComplexType tmp = alpha(i) * std::conj(beta(j));
 		tmp += std::conj(beta(i))*alpha(j);
-		tmp += 2.0*chi(i)*chi(j);
+		tmp += 2.0*std::conj(chi(i))*std::conj(chi(j));
 		return tmp * common_.J(i,j,ind);
 	}
 
