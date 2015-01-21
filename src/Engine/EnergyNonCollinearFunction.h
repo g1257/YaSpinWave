@@ -84,7 +84,7 @@ class EnergyNonCollinearFunction {
 			}
 		}
 
-		void fromRaw(RealType* data, SizeType n)
+		void fromRaw(const RealType* data, SizeType n)
 		{
 			if (data_.size() != n) data_.resize(n);
 
@@ -152,9 +152,14 @@ public:
 		config.print(std::cerr);
 		int used = 0;
 		if (minParams.algo == MinimizerParams<RealType>::SIMPLEX) {
-			used = min.simplex(config(), minParams.delta, minParams.tol);
+			used = min.simplex(config(),
+			                   minParams.delta,
+			                   minParams.tol);
 		} else {
-			used = min.conjugateGradient(config(), minParams.delta, minParams.tol);
+			used = min.conjugateGradient(config(),
+			                             minParams.delta,
+			                             minParams.delta2,
+			                             minParams.tol);
 		}
 
 		data_ = config;
@@ -185,9 +190,8 @@ public:
 		return 2*(sc_.rows() - data_.fixedSpins());
 	}
 
-	FieldType operator()(FieldType* data, SizeType n)
+	FieldType operator()(const FieldType* data, SizeType n)
 	{
-		canonicalAngles(data,n);
 		data_.fromRaw(data, n);
 
 		FieldType sum = 0;
@@ -198,14 +202,18 @@ public:
 		return sum;
 	}
 
-	void df(FieldType* data,SizeType n,FieldType* df,SizeType dfn)
+	void df(const FieldType* data,SizeType n,FieldType* df,SizeType dfn)
 	{
-		throw PsimagLite::RuntimeError("df: unimplemented\n");
-	}
+		data_.fromRaw(data, n);
 
-	void fdf(FieldType* data,SizeType n,FieldType* f, FieldType* df,SizeType dfn)
-	{
-		throw PsimagLite::RuntimeError("fdf: unimplemented\n");
+		assert(n == dfn);
+		for (SizeType i = 0; i < n; ++i) {
+			df[i] = 0.0;
+			for (SizeType ind = 0; ind < sc_.size(); ++ind) {
+				df[i] += derivativeEnergyThisCell(ind,i);
+			}
+		}
+
 	}
 
 private:
@@ -222,6 +230,32 @@ private:
 				buildVector(vj,data_(),j);
 				sum += std::real(sc_(i,j,ind))*scalarProduct(vi,vj);
 			}
+		}
+
+		return sum;
+	}
+
+	FieldType derivativeEnergyThisCell(SizeType ind, SizeType index) const
+	{
+		SizeType lda = sc_.rows();
+		VectorRealType vi(3,0);
+		VectorRealType vj(3,0);
+		SizeType newIndex = index + 2*data_.fixedSpins();
+		bool isPhi = (newIndex & 1);
+		if (isPhi) newIndex--;
+		newIndex = static_cast<SizeType>(0.5*newIndex);
+
+		buildDeltaVector(vi,data_(),newIndex,isPhi);
+		RealType sum = 0;
+		for (SizeType j = 0; j < lda; ++j) {
+			buildVector(vj,data_(),j);
+			sum += std::real(sc_(newIndex,j,ind))*scalarProduct(vi,vj);
+		}
+
+		for (SizeType i = 0; i < lda; ++i) {
+			buildVector(vi,data_(),i);
+			buildDeltaVector(vj,data_(),newIndex,isPhi);
+			sum += std::real(sc_(i,newIndex,ind))*scalarProduct(vi,vj);
 		}
 
 		return sum;
@@ -245,6 +279,33 @@ private:
 		dst[0] = sin(src[x])*cos(src[1+x]);
 		dst[1] = sin(src[x])*sin(src[1+x]);
 		dst[2] = cos(src[x]);
+	}
+
+	void buildDeltaVector(VectorRealType& dst,
+	                      const VectorRealType& src,
+	                      SizeType i,
+	                      SizeType isPhi) const
+	{
+		SizeType fixedSpins = data_.fixedSpins();
+		if (i < fixedSpins) {
+			dst[0] = dst[1] = dst[2] = 0;
+			return;
+		}
+
+		SizeType ii = i - fixedSpins;
+		SizeType x = ii*2;
+		assert(dst.size() == 3);
+		assert(src.size() > x+1);
+		if (!isPhi) {
+			dst[0] = cos(src[x])*cos(src[1+x]);
+			dst[1] = cos(src[x])*sin(src[1+x]);
+			dst[2] = -sin(src[x]);
+			return;
+		}
+
+		dst[0] = -sin(src[x])*sin(src[1+x]);
+		dst[1] = sin(src[x])*cos(src[1+x]);
+		dst[2] = 0.0;
 	}
 
 	void canonicalAngles(FieldType* data, SizeType n) const

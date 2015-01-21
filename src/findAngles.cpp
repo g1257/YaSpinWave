@@ -58,6 +58,7 @@ int main(int argc, char** argv)
 	int seed = 0;
 	SizeType maxIter = 1000;
 	RealType delta = 1e-1;
+	RealType delta2 = 1e-1;
 	RealType tol = 1e-4;
 	bool verbose = false;
 	RealType prec = 8;
@@ -65,7 +66,7 @@ int main(int argc, char** argv)
 	SizeType fixedSpins = 1;
 	EnumAlgo algo = MinimizerParamsType::SIMPLEX;
 
-	while ((opt = getopt(argc, argv,"j:s:m:d:t:p:a:F:cvC")) != -1) {
+	while ((opt = getopt(argc, argv,"j:s:m:d:D:t:p:a:F:cvC")) != -1) {
 		switch (opt) {
 		case 'j':
 			jfile = optarg;
@@ -81,6 +82,9 @@ int main(int argc, char** argv)
 			break;
 		case 'd':
 			delta = atof(optarg);
+			break;
+		case 'D':
+			delta2 = atof(optarg);
 			break;
 		case 't':
 			tol = atof(optarg);
@@ -108,7 +112,7 @@ int main(int argc, char** argv)
 
 	std::cerr.precision(prec);
 	std::cout.precision(prec);
-	MinimizerParamsType minParams(algo,maxIter,delta,tol,verbose);
+	MinimizerParamsType minParams(algo,maxIter,delta,delta2,tol,verbose);
 
 	if (jfile == "") {
 		usage(argv[0],&minParams);

@@ -60,14 +60,6 @@ int main(int argc, char** argv)
 		std::cout<<dispersion[i]<<" ";
 	std::cout<<"\n";
 
-//	if (dispersion.size() != 2) {
-//		PsimagLite::String msg(argv[0]);
-//		msg += ": Dispersion size is "+ ttos(dispersion.size()) + " for this q.\n";
-//		throw PsimagLite::RuntimeError(msg);
-//	}
-
-//	std::cout<<dispersion[0]<<" "<<dispersion[1]<<"\n";
-
 	return 0;
 }
 

@@ -6,7 +6,7 @@ use warnings;
 use lib '../../PsimagLite/scripts';
 use Make;
 
-my @drivers = ("findAngles","anglesToMatrix","spaceToReciprocal","monteCarlo");
+my @drivers = ("findAngles","anglesToMatrix","spaceToReciprocal");
 
 my $lapack = Make::findLapack();
 Make::backupMakefile();
