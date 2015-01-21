@@ -150,7 +150,13 @@ public:
 		MinimizerType min(*this, minParams.maxIter,minParams.verbose);
 		std::cerr<<"Initial config\n";
 		config.print(std::cerr);
-		int used = min.simplex(config(), minParams.delta, minParams.tol);
+		int used = 0;
+		if (minParams.algo == MinimizerParams<RealType>::SIMPLEX) {
+			used = min.simplex(config(), minParams.delta, minParams.tol);
+		} else {
+			used = min.conjugateGradient(config(), minParams.delta, minParams.tol);
+		}
+
 		data_ = config;
 		std::cerr<<"Minimizer params\n";
 		std::cerr<<minParams;
@@ -190,6 +196,16 @@ public:
 		}
 
 		return sum;
+	}
+
+	void df(FieldType* data,SizeType n,FieldType* df,SizeType dfn)
+	{
+		throw PsimagLite::RuntimeError("df: unimplemented\n");
+	}
+
+	void fdf(FieldType* data,SizeType n,FieldType* f, FieldType* df,SizeType dfn)
+	{
+		throw PsimagLite::RuntimeError("fdf: unimplemented\n");
 	}
 
 private:
