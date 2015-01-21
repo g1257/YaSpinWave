@@ -65,11 +65,19 @@ public:
 	}
 
 	template<typename GreenFunctionType,typename SomePackerType>
-	void doMeasurements(
-	        GreenFunctionType& greenFunction,
-	        SizeType iter,
-	        SomePackerType& packer)
-	{}
+	void doMeasurements(GreenFunctionType& greenFunction,
+	                    SizeType iter,
+	                    SomePackerType& packer)
+	{
+		SpinType* dynVarsPtr = 0;
+		dynVars_.getField(&dynVarsPtr,0);
+		const SpinType& dynVars = *dynVarsPtr;
+
+		packer.pack("iter=",iter);
+
+		RealType temp2 = calcEnergy(dynVars);
+		packer.pack("TotalEnergy==",temp2);
+	}
 
 	void setTpemThings(RealType& a,
 	                   RealType& b,

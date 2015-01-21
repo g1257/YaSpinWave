@@ -19,6 +19,7 @@ void usage(const char *progName, const yasw::MinimizerParams<double>* minParams)
 	std::cerr<<"\t-C Use conjugate gradient\n";
 	std::cerr<<"\t-m maxIter (max. iterations for minimizer)\n";
 	std::cerr<<"\t-d delta (x advancement for minimizer)\n";
+	std::cerr<<"\t-D delta (advancement for gradient, ignored unless using -C)\n";
 	std::cerr<<"\t-t tolerance (y tolerance for minimizer)\n";
 	if (!minParams) return;
 	std::cerr<<"Defaults are\n";
