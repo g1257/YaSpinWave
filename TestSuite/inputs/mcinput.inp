@@ -1,0 +1,23 @@
+EngineOptions=none
+GeometryKind=Bogus
+Model=Heisenberg
+Version=0
+OutputFilename=outmc.txt
+TargetElectronsUp=-2
+TargetElectronsDown=-2
+ChemicalPotential=0
+HistogramSteps=100
+BoundaryConditions=bogus
+LadderLeg=0
+Jinput=jinput.txt
+Verbose=1
+Beta=100
+MonteCarloThermalizations=0
+MonteCarloEffectiveIteractions=100
+MonteCarloUnmeasuredPlusOne=1
+MonteCarloWindow 2 0.5 0.5
+MonteCarloStartTypeOrFile=none 
+MonteCarloStartLevel=0
+RandomSeed=1234
+SaveEach=2
+

@@ -1,0 +1,23 @@
+EngineOptions=none
+GeometryKind=Bogus
+Model=Heisenberg
+Version=0
+OutputFilename=$output
+TargetElectronsUp=-2
+TargetElectronsDown=-2
+ChemicalPotential=0
+HistogramSteps=100
+BoundaryConditions=bogus
+LadderLeg=0
+Jinput=jinput.txt
+Verbose=1
+Beta=$beta
+MonteCarloThermalizations=0
+MonteCarloEffectiveIteractions=100
+MonteCarloUnmeasuredPlusOne=1
+MonteCarloWindow 2 -1 1 
+MonteCarloStartTypeOrFile=none 
+MonteCarloStartLevel=0
+RandomSeed=$random
+SaveEach=2
+
