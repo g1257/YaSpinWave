@@ -76,7 +76,7 @@ public:
 		packer.pack("iter=",iter);
 
 		RealType temp2 = calcEnergy(dynVars);
-		packer.pack("TotalEnergy==",temp2);
+		packer.pack("TotalEnergy=",temp2);
 	}
 
 	void setTpemThings(RealType& a,

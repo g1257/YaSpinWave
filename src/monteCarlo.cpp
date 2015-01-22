@@ -12,9 +12,29 @@ public:
 
 	BogusGeometry(InputType& io)
 	{
-		io.readline(unitCellSize,"UnitCellSize=");
 		io.readline(jfile,"Jinput=");
+		std::ifstream fin(jfile.c_str());
+		if (!fin || fin.bad() || !fin.good()) {
+			PsimagLite::String msg("BogusGeometry: Cannot open file ");
+			msg += jfile + "\n";
+			throw PsimagLite::RuntimeError(msg);
+		}
+
 		int tmp = 0;
+		fin>>tmp;
+		if (fin.eof()) {
+			PsimagLite::String msg("BogusGeometry: Syntax error in ");
+			msg += jfile + "\n";
+			throw PsimagLite::RuntimeError(msg);
+		}
+
+		fin>>unitCellSize;
+		if (fin.eof()) {
+			PsimagLite::String msg("BogusGeometry: Syntax error in ");
+			msg += jfile + "\n";
+			throw PsimagLite::RuntimeError(msg);
+		}
+
 		io.readline(tmp,"Verbose=");
 		verbose = (tmp > 0);
 	}
