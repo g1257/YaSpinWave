@@ -66,8 +66,9 @@ int main(int argc, char** argv)
 	PsimagLite::String afile("");
 	SizeType fixedSpins = 1;
 	EnumAlgo algo = MinimizerParamsType::SIMPLEX;
+	SizeType saveEvery = 0;
 
-	while ((opt = getopt(argc, argv,"j:s:m:d:D:t:p:a:F:cvC")) != -1) {
+	while ((opt = getopt(argc, argv,"j:s:m:d:D:t:p:a:F:S:cvC")) != -1) {
 		switch (opt) {
 		case 'j':
 			jfile = optarg;
@@ -105,6 +106,9 @@ int main(int argc, char** argv)
 		case 'C':
 			algo = MinimizerParamsType::CONJUGATE_GRADIENT;
 			break;
+		case 'S':
+			saveEvery = atoi(optarg);
+			break;
 		default:
 			usage(argv[0],0);
 			return 1;
@@ -113,7 +117,7 @@ int main(int argc, char** argv)
 
 	std::cerr.precision(prec);
 	std::cout.precision(prec);
-	MinimizerParamsType minParams(algo,maxIter,delta,delta2,tol,verbose);
+	MinimizerParamsType minParams(algo,maxIter,delta,delta2,tol,saveEvery,verbose);
 
 	if (jfile == "") {
 		usage(argv[0],&minParams);

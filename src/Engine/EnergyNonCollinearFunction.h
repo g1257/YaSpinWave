@@ -159,7 +159,8 @@ public:
 			used = min.conjugateGradient(config(),
 			                             minParams.delta,
 			                             minParams.delta2,
-			                             minParams.tol);
+			                             minParams.tol,
+			                             minParams.saveEvery);
 		}
 
 		data_ = config;
