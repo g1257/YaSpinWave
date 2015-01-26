@@ -37,11 +37,14 @@ public:
 
 		io.readline(tmp,"Verbose=");
 		verbose = (tmp > 0);
+
+		io.read(qvector,"Qvector ");
 	}
 
 	int unitCellSize;
 	PsimagLite::String jfile;
 	bool verbose;
+	PsimagLite::Vector<double>::Type qvector;
 };
 
 typedef double RealType;

@@ -38,7 +38,7 @@ public:
 	           IoInType& io)
 	    : dynVars_(geometry.unitCellSize,engineParams),
 	      spinOperations_(geometry,engineParams),
-	      energy_(geometry.jfile, geometry.verbose)
+	      energy_(geometry.jfile, geometry.qvector, geometry.verbose)
 	{}
 
 	DynVarsType& dynVars() { return dynVars_; }

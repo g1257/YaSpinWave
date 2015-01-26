@@ -77,9 +77,12 @@ class EnergyCollinearFunction {
 
 public:
 
+	typedef  PsimagLite::Vector<double>::Type VectorRealType;
 	typedef Configuration ConfigurationType;
 
-	EnergyCollinearFunction(PsimagLite::String jfile, bool verbose)
+	EnergyCollinearFunction(PsimagLite::String jfile,
+	                        const VectorRealType&,
+	                        bool verbose)
 	    : sc_(jfile, verbose)
 	{}
 

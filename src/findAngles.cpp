@@ -5,6 +5,7 @@
 #include "EnergyCollinearFunction.h"
 #include "EnergyNonCollinearFunction.h"
 #include "MinimizerParams.h"
+#include "Tokenizer.h"
 
 void usage(const char *progName, const yasw::MinimizerParams<double>* minParams)
 {
@@ -21,6 +22,8 @@ void usage(const char *progName, const yasw::MinimizerParams<double>* minParams)
 	std::cerr<<"\t-d delta (x advancement for minimizer)\n";
 	std::cerr<<"\t-D delta (advancement for gradient, ignored unless using -C)\n";
 	std::cerr<<"\t-t tolerance (y tolerance for minimizer)\n";
+	std::cerr<<"\t-S n (save work configuration each n steps)\n";
+	std::cerr<<"\t-q q0,q1,q2 (q values to use in energy function)\n";
 	if (!minParams) return;
 	std::cerr<<"Defaults are\n";
 	std::cerr<<(*minParams);
@@ -29,11 +32,12 @@ void usage(const char *progName, const yasw::MinimizerParams<double>* minParams)
 template<typename EnergyFunctionType>
 void main2(PsimagLite::String jfile,
            SizeType fixedSpins,
+           const typename EnergyFunctionType::VectorRealType& qvector,
            PsimagLite::String afile,
            int seed,
            const yasw::MinimizerParams<double>& minParams)
 {
-	EnergyFunctionType energy(jfile, minParams.verbose);
+	EnergyFunctionType energy(jfile, qvector,minParams.verbose);
 	SizeType totalSpins = energy.totalSpins();
 	typename EnergyFunctionType::ConfigurationType minConfig(totalSpins,
 	                                                         fixedSpins,
@@ -67,8 +71,11 @@ int main(int argc, char** argv)
 	SizeType fixedSpins = 1;
 	EnumAlgo algo = MinimizerParamsType::SIMPLEX;
 	SizeType saveEvery = 0;
+	PsimagLite::Vector<PsimagLite::String>::Type tokens;
+	PsimagLite::String delimiter = ",";
+	PsimagLite::String str;
 
-	while ((opt = getopt(argc, argv,"j:s:m:d:D:t:p:a:F:S:cvC")) != -1) {
+	while ((opt = getopt(argc, argv,"j:s:m:d:D:t:p:a:F:S:q:cvC")) != -1) {
 		switch (opt) {
 		case 'j':
 			jfile = optarg;
@@ -109,6 +116,10 @@ int main(int argc, char** argv)
 		case 'S':
 			saveEvery = atoi(optarg);
 			break;
+		case 'q':
+			str = optarg;
+			PsimagLite::tokenizer(str,tokens,delimiter);
+			break;
 		default:
 			usage(argv[0],0);
 			return 1;
@@ -124,10 +135,16 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
+	PsimagLite::Vector<RealType>::Type q(tokens.size(),0);
+	for (SizeType i = 0; i < q.size(); ++i) {
+		q[i] = atof(tokens[i].c_str());
+		if (verbose) std::cerr<<"q["<<i<<"]= "<<q[i]<<"\n";
+	}
+
 	if (collinear) {
-		main2<EnergyCollinearFunctionType>(jfile,fixedSpins,afile,seed,minParams);
+		main2<EnergyCollinearFunctionType>(jfile,fixedSpins,q,afile,seed,minParams);
 	} else {
-		main2<EnergyNonCollinearFunctionType>(jfile,fixedSpins,afile,seed,minParams);
+		main2<EnergyNonCollinearFunctionType>(jfile,fixedSpins,q,afile,seed,minParams);
 	}
 }
 

@@ -15,6 +15,7 @@ class EnergyNonCollinearFunction {
 	typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
 	typedef yasw::SpaceConnectors<ComplexOrRealType> SpaceConnectorsType;
 	typedef EnergyNonCollinearFunction<ComplexOrRealType> ThisType;
+	typedef std::complex<RealType> ComplexType;
 
 	class Configuration {
 
@@ -131,8 +132,10 @@ public:
 	typedef Configuration ConfigurationType;
 	typedef PsimagLite::Minimizer<RealType,ThisType> MinimizerType;
 
-	EnergyNonCollinearFunction(PsimagLite::String jfile, bool verbose)
-	    : sc_(jfile, verbose),data_(1,0,verbose)
+	EnergyNonCollinearFunction(PsimagLite::String jfile,
+	                           const VectorRealType& qvector,
+	                           bool verbose)
+	    : qvector_(qvector), sc_(jfile, verbose), data_(1,0,verbose)
 	{}
 
 	void minimize(ConfigurationType& config,
@@ -221,19 +224,25 @@ private:
 
 	FieldType energyThisCell(SizeType ind) const
 	{
-		RealType sum = 0;
+		ComplexType sum = 0;
 		SizeType lda = sc_.rows();
 		VectorRealType vi(3,0);
 		VectorRealType vj(3,0);
+
+		ComplexType phase = getUnitPhase(ind);
 		for (SizeType i = 0; i < lda; ++i) {
 			buildVector(vi,data_(),i);
 			for (SizeType j = 0; j < lda; ++j) {
 				buildVector(vj,data_(),j);
-				sum += std::real(sc_(i,j,ind))*scalarProduct(vi,vj);
+				sum += phase*std::real(sc_(i,j,ind))*scalarProduct(vi,vj);
 			}
 		}
 
-		return sum;
+		if (fabs(std::imag(sum)) > 1e-10) {
+			throw PsimagLite::RuntimeError("Energy is complex\n");
+		}
+
+		return std::real(sum);
 	}
 
 	FieldType derivativeEnergyThisCell(SizeType ind, SizeType index) const
@@ -246,20 +255,26 @@ private:
 		if (isPhi) newIndex--;
 		newIndex = static_cast<SizeType>(0.5*newIndex);
 
+		ComplexType phase = getUnitPhase(ind);
+
 		buildDeltaVector(vi,data_(),newIndex,isPhi);
-		RealType sum = 0;
+		ComplexType sum = 0;
 		for (SizeType j = 0; j < lda; ++j) {
 			buildVector(vj,data_(),j);
-			sum += std::real(sc_(newIndex,j,ind))*scalarProduct(vi,vj);
+			sum += phase*std::real(sc_(newIndex,j,ind))*scalarProduct(vi,vj);
 		}
 
 		for (SizeType i = 0; i < lda; ++i) {
 			buildVector(vi,data_(),i);
 			buildDeltaVector(vj,data_(),newIndex,isPhi);
-			sum += std::real(sc_(i,newIndex,ind))*scalarProduct(vi,vj);
+			sum += phase*std::real(sc_(i,newIndex,ind))*scalarProduct(vi,vj);
 		}
 
-		return sum;
+		if (fabs(std::imag(sum)) > 1e-10) {
+			throw PsimagLite::RuntimeError("Energy is complex\n");
+		}
+
+		return std::real(sum);
 	}
 
 	void buildVector(VectorRealType& dst,
@@ -327,6 +342,18 @@ private:
 		return x;
 	}
 
+	ComplexType getUnitPhase(SizeType ind) const
+	{
+		VectorRealType nvector(3,0.0);
+		for (SizeType i = 0; i < 3; ++i) {
+			nvector[i] = sc_.nmatrix(ind,i);
+		}
+
+		RealType tmp = scalarProduct(nvector,qvector_);
+		return ComplexType(cos(tmp),sin(tmp));
+	}
+
+	const VectorRealType& qvector_;
 	SpaceConnectorsType sc_;
 	ConfigurationType data_;
 };
