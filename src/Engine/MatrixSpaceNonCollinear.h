@@ -67,7 +67,7 @@ private:
 
 				ComplexOrRealType tmp = (alt_) ? -gcoeff(i,j,ind,1) :  aplus(i,j,ind);
 				if (std::norm(tmp)<1e-10) tmp = 0;
-				m(i,j) = m(i+lda,j+lda)  = tmp;
+				m(i,j) = m(j+lda,i+lda)  = tmp;
 
 				tmp = (alt_) ? -gcoeff(i,j,ind,-1) :  bplus(i,j,ind);
 				if (std::norm(tmp)<1e-10) tmp = 0;
@@ -97,7 +97,7 @@ private:
 		return -sum;
 	}
 
-	ComplexType aplus(SizeType i, SizeType j, SizeType ind) const
+	ComplexType aplusOld(SizeType i, SizeType j, SizeType ind) const
 	{
 		ComplexType tmp = std::conj(alpha(i)) * alpha(j);
 		tmp += std::conj(beta(j))*beta(i);
@@ -105,12 +105,38 @@ private:
 		return tmp * common_.J(i,j,ind);
 	}
 
-	ComplexType bplus(SizeType i, SizeType j, SizeType ind) const
+	ComplexType bplusOld(SizeType i, SizeType j, SizeType ind) const
 	{
 		ComplexType tmp = alpha(i) * std::conj(beta(j));
 		tmp += std::conj(beta(i))*alpha(j);
 		tmp += 2.0*std::conj(chi(i))*std::conj(chi(j));
 		return tmp * common_.J(i,j,ind);
+	}
+
+	ComplexType aplus(SizeType i, SizeType j, SizeType ind) const
+	{
+		RealType t1 = common_.theta(i);
+		RealType p1 = common_.phi(i);
+		RealType t2 = common_.theta(j);
+		RealType p2 = common_.phi(j);
+		RealType deltaPhi = p1-p2;
+		RealType re = cos(deltaPhi)*(cos(t1)*cos(t2) + 1) + sin(t1)*sin(t2);
+		RealType im = sin(deltaPhi)*(cos(t2) + cos(t1));
+		ComplexType tmp(re,im);
+		return 0.5*tmp*common_.J(i,j,ind);
+	}
+
+	ComplexType bplus(SizeType i, SizeType j, SizeType ind) const
+	{
+		RealType t1 = common_.theta(i);
+		RealType p1 = common_.phi(i);
+		RealType t2 = common_.theta(j);
+		RealType p2 = common_.phi(j);
+		RealType deltaPhi = p1-p2;
+		RealType re = cos(deltaPhi)*(cos(t1)*cos(t2) - 1) + sin(t1)*sin(t2);
+		RealType im = sin(deltaPhi)*(cos(t2) - cos(t1));
+		ComplexType tmp(re,im);
+		return 0.5*tmp*common_.J(i,j,ind);
 	}
 
 	ComplexType xi(SizeType i) const
