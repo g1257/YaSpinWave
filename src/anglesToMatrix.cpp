@@ -19,10 +19,9 @@ template<typename MatrixSpaceType>
 void main2(PsimagLite::String jfile,
            PsimagLite::String afile,
            bool verbose,
-           bool hOnly,
-           bool altRotation)
+           bool hOnly)
 {
-	yasw::SpinWave<MatrixSpaceType> sw(jfile,afile,verbose,altRotation);
+	yasw::SpinWave<MatrixSpaceType> sw(jfile,afile,verbose);
 
 	if (hOnly) {
 		sw.printSpaceMatrices(std::cout);
@@ -45,10 +44,9 @@ int main(int argc, char** argv)
 	PsimagLite::String afile;
 	bool collinear = false;
 	bool hOnly = false;
-	bool altRotation = false;
 	bool verbose = false;
 
-	while ((opt = getopt(argc, argv,"j:a:cHAv")) != -1) {
+	while ((opt = getopt(argc, argv,"j:a:cHv")) != -1) {
 		switch (opt) {
 		case 'j':
 			jfile = optarg;
@@ -61,9 +59,6 @@ int main(int argc, char** argv)
 			break;
 		case 'H':
 			hOnly = true;
-			break;
-		case 'A':
-			altRotation = true;
 			break;
 		case 'v':
 			verbose = true;
@@ -80,9 +75,9 @@ int main(int argc, char** argv)
 	}
 
 	if (collinear) {
-		main2<MatrixSpaceCollinearType>(jfile,afile,verbose,hOnly,altRotation);
+		main2<MatrixSpaceCollinearType>(jfile,afile,verbose,hOnly);
 	} else {
-		main2<MatrixSpaceNonCollinearType>(jfile,afile,verbose,hOnly,altRotation);
+		main2<MatrixSpaceNonCollinearType>(jfile,afile,verbose,hOnly);
 	}
 }
 

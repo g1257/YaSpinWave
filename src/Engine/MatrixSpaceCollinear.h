@@ -21,16 +21,9 @@ public:
 
 	MatrixSpaceCollinear(PsimagLite::String jfile,
 	                     PsimagLite::String afile,
-	                     bool verbose,
-	                     bool altRotation)
+	                     bool verbose)
 	    : verbose_(verbose),common_(jfile,afile,verbose),data_(common_.size())
 	{
-		if (altRotation) {
-			PsimagLite::String str("MatrixSpaceCollinear: altRotation");
-			str +=" makes no sense for collinear algorithm\n";
-			std::cerr<<"WARNING "<<str;
-		}
-
 		SizeType lda = common_.rows();
 		for (SizeType i = 0; i < common_.size(); ++i) {
 			MatrixComplexOrRealType m(2*lda,2*lda);
