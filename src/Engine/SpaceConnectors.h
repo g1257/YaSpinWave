@@ -1,6 +1,5 @@
 #ifndef SPACECONNECTORS_H
 #define SPACECONNECTORS_H
-#include "String.h"
 #include "Matrix.h"
 #include <fstream>
 

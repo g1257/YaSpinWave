@@ -1,6 +1,5 @@
 #ifndef ANGLES_H
 #define ANGLES_H
-#include "String.h"
 #include "Matrix.h"
 #include "InputCheck.h"
 #include "InputNg.h"

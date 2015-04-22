@@ -1,6 +1,5 @@
 #include <iostream>
 #include <unistd.h>
-#include "String.h"
 #include "MatrixSpaceCollinear.h"
 #include "MatrixSpaceNonCollinear.h"
 #include "SpinWave.h"
@@ -12,7 +11,6 @@ void usage(const char *progName)
 	std::cerr<<"\t-v Verbose\n";
 	std::cerr<<"\t-c Use algorithm for collinear\n";
 	std::cerr<<"\t-H Compute Hamiltonian only\n";
-	std::cerr<<"\t-A use alternative rotation\n";
 }
 
 template<typename MatrixSpaceType>

@@ -2,7 +2,6 @@
 #include <iostream>
 #include <unistd.h>
 #include <complex>
-#include "String.h"
 #include "Tokenizer.h"
 
 void usage(const char *progName)

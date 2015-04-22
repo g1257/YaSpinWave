@@ -5,7 +5,6 @@
 #ifndef YASW_INPUT_CHECK_MC_H
 #define YASW_INPUT_CHECK_MC_H
 #include <vector>
-#include "String.h"
 #include <stdexcept>
 #include "Options.h"
 

@@ -1,6 +1,6 @@
 #ifndef SPINWAVE_H
 #define SPINWAVE_H
-#include "String.h"
+#include "AllocatorCpu.h"
 #include <iostream>
 
 namespace yasw {

@@ -1,6 +1,5 @@
 #include <iostream>
 #include <unistd.h>
-#include "String.h"
 #include "Minimizer.h"
 #include "EnergyCollinearFunction.h"
 #include "EnergyNonCollinearFunction.h"

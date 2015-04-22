@@ -1,6 +1,5 @@
 #ifndef MATRIXRECIPROCALSPACE_H
 #define MATRIXRECIPROCALSPACE_H
-#include "String.h"
 #include "Matrix.h"
 #include "SpaceConnectors.h"
 
