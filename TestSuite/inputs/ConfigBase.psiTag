@@ -105,10 +105,9 @@ group basics = (
 < dependency PsimagLite
 < default compiler
 < compilerCPPOptions ansi
-< dependency HDF5
 < dependency LAPACK
 < dependency BLAS
-< dependency Boost
+< dependency GSL
 STRIP_COMMAND = strip
 )
 
