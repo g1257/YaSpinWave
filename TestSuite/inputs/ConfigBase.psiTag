@@ -57,8 +57,6 @@ CPPFLAGS += -DUSE_CUSTOM_ALLOCATOR
 #IoNg needs HDF5 libraries
 dependency HDF5 = (
 CPPFLAGS += -I/usr/include/hdf5/serial
-LDFLAGS += -L/usr/lib/x86_64-linux-gnu/hdf5/serial/
-LDFLAGS += -lhdf5_hl_cpp -lhdf5_cpp -lhdf5_hl -lhdf5
 )
 
 #This enables boost support that is needed for Ainur
@@ -107,6 +105,7 @@ group basics = (
 < compilerCPPOptions ansi
 < dependency LAPACK
 < dependency BLAS
+< dependency HDF5
 < dependency GSL
 STRIP_COMMAND = strip
 )
