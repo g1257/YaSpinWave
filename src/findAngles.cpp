@@ -4,7 +4,7 @@
 #include "EnergyCollinearFunction.h"
 #include "EnergyNonCollinearFunction.h"
 #include "MinimizerParams.h"
-#include "Tokenizer.h"
+#include "PsimagLite.h"
 
 void usage(const char *progName, const yasw::MinimizerParams<double>* minParams)
 {
@@ -116,8 +116,7 @@ int main(int argc, char** argv)
 			saveEvery = atoi(optarg);
 			break;
 		case 'q':
-			str = optarg;
-			PsimagLite::tokenizer(str,tokens,delimiter);
+			PsimagLite::split(tokens, optarg, delimiter);
 			break;
 		default:
 			usage(argv[0],0);

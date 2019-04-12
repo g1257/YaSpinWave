@@ -96,7 +96,13 @@ namespace yasw {
 			if (optsReadable_!=0) delete optsReadable_;
 		}
 
-		bool check(const PsimagLite::String& label,const PsimagLite::Vector<PsimagLite::String>::Type& vec,SizeType line) const
+		PsimagLite::String import() const { return ""; }
+
+		void checkSimpleLabel(PsimagLite::String, SizeType) const {}
+
+		bool check(const PsimagLite::String& label,
+		           const PsimagLite::Vector<PsimagLite::String>::Type& vec,
+		           SizeType line) const
 		{
 			if (label=="JMVALUES") {
 				if (vec.size()!=2) return error1("JMVALUES",line);

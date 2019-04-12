@@ -2,7 +2,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <complex>
-#include "Tokenizer.h"
+#include "PsimagLite.h"
 
 void usage(const char *progName)
 {
@@ -32,8 +32,7 @@ int main(int argc, char** argv)
 			verbose = true;
 			break;
 		case 'q':
-			str = optarg;
-			PsimagLite::tokenizer(str,tokens,delimiter);
+			PsimagLite::split(tokens, optarg, delimiter);
 			break;
 		default:
 			usage(argv[0]);

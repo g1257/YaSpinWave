@@ -20,7 +20,7 @@ public:
 	{
 		InputType::Writeable ioWriteable(filename,inputCheck_);
 		InputType::Readable io(ioWriteable);
-		io.readMatrix(data_,"Angles");
+		io.read(data_,"Angles");
 		if (verbose) {
 			std::cerr<<"#Angles read from "<<filename<<"\n";
 			std::cerr<<data_;
