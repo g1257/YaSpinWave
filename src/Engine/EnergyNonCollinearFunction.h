@@ -85,12 +85,9 @@ class EnergyNonCollinearFunction {
 			}
 		}
 
-		void fromRaw(const RealType* data, SizeType n)
+		void fromRaw(const VectorRealType& data)
 		{
-			if (data_.size() != n) data_.resize(n);
-
-			for (SizeType i = 0; i < n; ++i)
-				data_[i] = data[i];
+			data_ = data;
 		}
 
 		SizeType fixedSpins() const { return fixedSpins_; }
@@ -177,7 +174,7 @@ public:
 		}
 
 		std::cerr<<used<<" iterations.\n";
-		std::cerr<<"Energy at Minimum= "<<operator()(&(data_()[0]),data_.size());
+		std::cerr<<"Energy at Minimum= "<<operator()(data_());
 		std::cerr<<"\n";
 
 		std::cout<<"Angles\n";
@@ -194,9 +191,9 @@ public:
 		return 2*(sc_.rows() - data_.fixedSpins());
 	}
 
-	FieldType operator()(const FieldType* data, SizeType n)
+	FieldType operator()(const VectorRealType& data)
 	{
-		data_.fromRaw(data, n);
+		data_.fromRaw(data);
 
 		FieldType sum = 0;
 		for (SizeType i = 0; i < sc_.size(); ++i) {
@@ -206,11 +203,11 @@ public:
 		return sum;
 	}
 
-	void df(const FieldType* data,SizeType n,FieldType* df,SizeType dfn)
+	void df(VectorRealType& df, const VectorRealType& data)
 	{
-		data_.fromRaw(data, n);
+		data_.fromRaw(data);
 
-		assert(n == dfn);
+		const SizeType n = data.size();
 		for (SizeType i = 0; i < n; ++i) {
 			df[i] = 0.0;
 			for (SizeType ind = 0; ind < sc_.size(); ++ind) {

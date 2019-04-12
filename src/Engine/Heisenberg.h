@@ -96,7 +96,7 @@ public:
 			data_[2*i+1] = spin.phi[i];
 		}
 
-		return energy_(&(data_[0]),data_.size());
+		return energy_(data_);
 	}
 
 private:
