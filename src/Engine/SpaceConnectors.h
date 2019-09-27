@@ -48,11 +48,12 @@ public:
 
 		rows_ = atoi(tmp.c_str());
 
-		if (n>=100) {
-			throw PsimagLite::RuntimeError("SpaceConnectors:: too many\n");
-		}
+		SizeType fatRowSize = rows_*pixelSize_;
 
-		nmatrix_.resize(n,3);
+		if (n >= 100)
+			throw PsimagLite::RuntimeError("SpaceConnectors:: too many\n");
+
+		nmatrix_.resize(n, 3);
 		data_.resize(n);
 		bool centralSeen = false;
 
@@ -76,10 +77,10 @@ public:
 					std::cerr<<"Found central cell index "<<centralCellIndex_<<"\n";
 			}
 
-			data_[i].resize(rows_,rows_);
-			for (SizeType j = 0; j < rows_; ++j) {
-				for (SizeType k = 0; k < rows_; ++k) {
-					fin>>data_[i](j,k);
+			data_[i].resize(fatRowSize, fatRowSize);
+			for (SizeType j = 0; j < fatRowSize; ++j) {
+				for (SizeType k = 0; k < fatRowSize; ++k) {
+					fin>>data_[i](j, k);
 				}
 			}
 		}
@@ -87,15 +88,15 @@ public:
 		fin.close();
 
 		if (!centralSeen) {
-			data_.resize(n+1);
-			data_[n].resize(rows_,rows_);
-			for (SizeType j = 0; j < rows_; ++j) {
-				for (SizeType k = 0; k < rows_; ++k) {
+			data_.resize(n + 1);
+			data_[n].resize(fatRowSize, fatRowSize);
+			for (SizeType j = 0; j < fatRowSize; ++j) {
+				for (SizeType k = 0; k < fatRowSize; ++k) {
 					data_[n](j,k) = 0.0;
 				}
 			}
 
-			MatrixRealType nmatrix(n+1,3);
+			MatrixRealType nmatrix(n + 1, 3);
 			for (SizeType i = 0; i < n; ++i)
 				for (SizeType j = 0; j < 3; ++j)
 					nmatrix(i,j) = nmatrix_(i,j);
@@ -113,7 +114,7 @@ public:
 	ComplexOrRealType operator()(SizeType i, SizeType j, SizeType ind) const
 	{
 		assert(ind < size());
-		return data_[ind](i,j);
+		return data_[ind](i, j);
 	}
 
 	PsimagLite::String nvector(SizeType ind) const
@@ -144,7 +145,7 @@ public:
 
 	const RealType& nmatrix(SizeType ind, SizeType i) const
 	{
-		return nmatrix_(ind,i);
+		return nmatrix_(ind, i);
 	}
 
 private:
