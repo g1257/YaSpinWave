@@ -222,16 +222,24 @@ private:
 	FieldType energyThisCell(SizeType ind) const
 	{
 		ComplexType sum = 0;
-		SizeType lda = sc_.rows();
+		const SizeType lda = sc_.rows();
 		VectorRealType vi(3,0);
 		VectorRealType vj(3,0);
+		const SizeType pixelSize = sc_.pixelSize();
 
 		ComplexType phase = getUnitPhase(ind);
 		for (SizeType i = 0; i < lda; ++i) {
+
 			buildVector(vi,data_(),i);
+
 			for (SizeType j = 0; j < lda; ++j) {
-				buildVector(vj,data_(),j);
-				sum += phase*std::real(sc_(i,j,ind))*scalarProduct(vi,vj);
+
+				buildVector(vj, data_(), j);
+
+				if (pixelSize == 1)
+					sum += phase*std::real(sc_(i, j, ind))*scalarProduct(vi, vj);
+				else
+					sum += phase*energyThisPixel(pixelSize, i, j, ind, vi, vj);
 			}
 		}
 
@@ -240,6 +248,26 @@ private:
 		}
 
 		return std::real(sum);
+	}
+
+	FieldType energyThisPixel(SizeType pixelSize,
+	                          SizeType row,
+	                          SizeType col,
+	                          SizeType ind,
+	                          const VectorRealType& si,
+	                          const VectorRealType& sj) const
+	{
+		FieldType sum = 0;
+		for (SizeType x1 = 0; x1 < pixelSize; ++x1) {
+			for (SizeType x2 = 0; x2 < pixelSize; ++x2) {
+				sum += std::real(sc_(pixelSize*row + x1,
+				                     pixelSize*col + x2,
+				                     ind))
+				        *si[x1]*sj[x2];
+			}
+		}
+
+		return sum;
 	}
 
 	FieldType derivativeEnergyThisCell(SizeType ind, SizeType index) const

@@ -17,7 +17,7 @@ public:
 	VectorComplexOrRealMatrixType;
 
 	SpaceConnectors(PsimagLite::String file, bool verbose)
-	    : rows_(0),centralCellIndex_(0)
+	    : rows_(0), pixelSize_(1), centralCellIndex_(0)
 	{
 		std::ifstream fin(file.c_str());
 		if (!fin || fin.bad() || !fin.good()) {
@@ -32,7 +32,22 @@ public:
 		std::cerr<<file<<"\n";
 		SizeType n = 0;
 		fin>>n;
-		fin>>rows_;
+
+		PsimagLite::String tmp;
+		fin>>tmp;
+		size_t indForTmp = tmp.find("*");
+		if (indForTmp != PsimagLite::String::npos) {
+			PsimagLite::String sRows = tmp.substr(0, indForTmp);
+			SizeType len = tmp.length() - indForTmp - 1;
+			PsimagLite::String sPixelSize = tmp.substr(indForTmp + 1, len);
+			pixelSize_ = atoi(sPixelSize.c_str());
+			tmp = sRows;
+			std::cerr<<__FILE__<<" : FAT Pixels, rows="<<sRows;
+			std::cerr<<" pixelSize="<<pixelSize_<<"\n";
+		}
+
+		rows_ = atoi(tmp.c_str());
+
 		if (n>=100) {
 			throw PsimagLite::RuntimeError("SpaceConnectors:: too many\n");
 		}
@@ -119,6 +134,8 @@ public:
 
 	SizeType rows() const {return rows_; }
 
+	SizeType pixelSize() const { return pixelSize_; }
+
 	const MatrixComplexOrRealType& getMatrix(SizeType ind) const
 	{
 		assert(ind < data_.size());
@@ -143,6 +160,7 @@ private:
 	MatrixRealType nmatrix_;
 	VectorComplexOrRealMatrixType data_;
 	SizeType rows_;
+	SizeType pixelSize_;
 	SizeType centralCellIndex_;
 }; // SpaceConnectors
 
