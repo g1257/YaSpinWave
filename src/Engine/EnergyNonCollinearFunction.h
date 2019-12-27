@@ -163,6 +163,7 @@ public:
 			                             minParams.saveEvery);
 		}
 
+		++used;
 		data_ = config;
 		std::cerr<<"Minimizer params\n";
 		std::cerr<<minParams;
@@ -283,16 +284,24 @@ private:
 		ComplexType phase = getUnitPhase(ind);
 
 		buildDeltaVector(vi,data_(),newIndex,isPhi);
+		const SizeType pixelSize = sc_.pixelSize();
 		ComplexType sum = 0;
 		for (SizeType j = 0; j < lda; ++j) {
 			buildVector(vj,data_(),j);
-			sum += phase*std::real(sc_(newIndex,j,ind))*scalarProduct(vi,vj);
+			if (pixelSize == 1)
+				sum += phase*std::real(sc_(newIndex,j,ind))*scalarProduct(vi,vj);
+			else
+				sum += phase*energyThisPixel(pixelSize, newIndex, j, ind, vi, vj);
 		}
 
 		for (SizeType i = 0; i < lda; ++i) {
 			buildVector(vi,data_(),i);
 			buildDeltaVector(vj,data_(),newIndex,isPhi);
-			sum += phase*std::real(sc_(i,newIndex,ind))*scalarProduct(vi,vj);
+
+			if (pixelSize == 1)
+				sum += phase*std::real(sc_(i,newIndex,ind))*scalarProduct(vi,vj);
+			else
+				sum += phase*energyThisPixel(pixelSize, i,newIndex, ind, vi, vj);
 		}
 
 		if (fabs(std::imag(sum)) > 1e-10) {
