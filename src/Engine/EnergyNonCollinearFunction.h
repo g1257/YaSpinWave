@@ -3,32 +3,33 @@
 #include "SpaceConnectors.h"
 #include "Vector.h"
 #include "Minimizer.h"
-#include "MersenneTwister.h"
 #include "MinimizerParams.h"
-#include "Angles.h"
+#include "InitConfig.h"
 
 namespace yasw {
 
-template<typename ComplexOrRealType>
+template<typename ComplexOrRealType_>
 class EnergyNonCollinearFunction {
 
+public:
+
+	typedef ComplexOrRealType_ ComplexOrRealType;
 	typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
 	typedef yasw::SpaceConnectors<ComplexOrRealType> SpaceConnectorsType;
 	typedef EnergyNonCollinearFunction<ComplexOrRealType> ThisType;
 	typedef std::complex<RealType> ComplexType;
+	typedef InitConfig<ComplexOrRealType_, false> InitConfigType;
 
 	class Configuration {
 
 	public:
 
-		typedef Angles<RealType> AnglesType;
 		typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
 
 		Configuration(SizeType totalSpins,
 		              SizeType fixedSpins,
 		              bool verbose,
-		              PsimagLite::String afile = "" ,
-		              int seed = 0)
+		              const InitConfigType& initConfig)
 		    : fixedSpins_(fixedSpins)
 		{
 
@@ -40,38 +41,7 @@ class EnergyNonCollinearFunction {
 
 			data_.resize(2*(totalSpins-fixedSpins),0.0);
 
-			if (seed > 0 && afile != "") {
-				PsimagLite::String msg("Configuration: Providing both ");
-				msg += " seed and angles file is an error\n";
-				throw PsimagLite::RuntimeError(msg);
-			}
-
-			if (afile != "") {
-				AnglesType angles(afile, verbose);
-				if (angles.size() != totalSpins) {
-					PsimagLite::String msg("Configuration: angles file");
-					msg += " has different size than j file\n";
-					throw PsimagLite::RuntimeError(msg);
-				}
-
-				if (!isValidAngles(angles)) {
-					PsimagLite::String msg("Configuration: FATAL: ");
-					msg += "First angle of " + afile + " is not with theta=0\n";
-					throw PsimagLite::RuntimeError(msg);
-				}
-
-				for (SizeType i = fixedSpins_; i < angles.size(); ++i) {
-					SizeType twiceIndex = 2*(i - fixedSpins_);
-					if (twiceIndex + 1 >= data_.size()) break;
-					data_[twiceIndex] = angles.theta(i);
-					data_[twiceIndex+1] = angles.phi(i);
-				}
-
-				return;
-			}
-
-			if (seed == 0) seed = 1234;
-			randomize(seed);
+			data_ <= initConfig;
 		}
 
 		void print(std::ostream& os) const
@@ -85,11 +55,6 @@ class EnergyNonCollinearFunction {
 			}
 		}
 
-		void fromRaw(const VectorRealType& data)
-		{
-			data_ = data;
-		}
-
 		SizeType fixedSpins() const { return fixedSpins_; }
 
 		VectorRealType& operator()() { return data_; }
@@ -99,24 +64,6 @@ class EnergyNonCollinearFunction {
 		SizeType size() const { return data_.size(); }
 
 	private:
-
-		void randomize(int seed)
-		{
-			PsimagLite::MersenneTwister rng(seed);
-			SizeType lda = static_cast<SizeType>(data_.size()*0.5);
-			for (SizeType i = 0; i < lda; ++i) {
-				data_[2*i] = rng() * M_PI;
-				data_[2*i+1] = rng() * 2.0*M_PI;
-			}
-		}
-
-		bool isValidAngles(const AnglesType& angles) const
-		{
-			for (SizeType i = 0; i < fixedSpins_; ++i)
-				if (fabs(angles.theta(i))>1e-6) return false;
-
-			return true;
-		}
 
 		VectorRealType data_;
 		SizeType fixedSpins_;
@@ -132,20 +79,21 @@ public:
 	EnergyNonCollinearFunction(PsimagLite::String jfile,
 	                           const VectorRealType& qvector,
 	                           bool verbose)
-	    : qvector_(qvector), sc_(jfile, verbose), data_(1,0,verbose)
+	    : qvector_(qvector), sc_(jfile, verbose), fixedSpins_(0)
 	{}
 
 	void minimize(ConfigurationType& config,
 	              const MinimizerParams<RealType>& minParams)
 	{
-		if (sc_.rows() <= config.fixedSpins()) {
+		fixedSpins_ = config.fixedSpins();
+
+		if (sc_.rows() <= fixedSpins_) {
 			PsimagLite::String msg("Configuration: ");
 			msg += "Too many fixed spins\n";
 			throw PsimagLite::RuntimeError(msg);
 		}
 
-		data_ = config;
-		assert(data_.size()+2*config.fixedSpins() == 2*sc_.rows());
+		assert(config.size()+2*fixedSpins_ == 2*sc_.rows());
 
 		MinimizerType min(*this, minParams.maxIter,minParams.verbose);
 		std::cerr<<"Initial config\n";
@@ -164,7 +112,6 @@ public:
 		}
 
 		++used;
-		data_ = config;
 		std::cerr<<"Minimizer params\n";
 		std::cerr<<minParams;
 		std::cerr<<"EnergyNonCollinearFunction::minimize(): ";
@@ -175,52 +122,45 @@ public:
 		}
 
 		std::cerr<<used<<" iterations.\n";
-		std::cerr<<"Energy at Minimum= "<<operator()(data_());
+		std::cerr<<"Energy at Minimum= "<<operator()(config());
 		std::cerr<<"\n";
 
 		std::cout<<"Angles\n";
-		data_.print(std::cout);
-
-		config = data_;
+		config.print(std::cout);
 	}
 
 	SizeType totalSpins() const { return sc_.rows(); }
 
 	SizeType size() const
 	{
-		assert(sc_.rows() > data_.fixedSpins());
-		return 2*(sc_.rows() - data_.fixedSpins());
+		assert(sc_.rows() > fixedSpins_);
+		return 2*(sc_.rows() - fixedSpins_);
 	}
 
-	FieldType operator()(const VectorRealType& data)
+	FieldType operator()(const VectorRealType& data) const
 	{
-		data_.fromRaw(data);
-
 		FieldType sum = 0;
 		for (SizeType i = 0; i < sc_.size(); ++i) {
-			sum += energyThisCell(i);
+			sum += energyThisCell(i, data);
 		}
 
 		return sum;
 	}
 
-	void df(VectorRealType& df, const VectorRealType& data)
+	void df(VectorRealType& df, const VectorRealType& data) const
 	{
-		data_.fromRaw(data);
-
 		const SizeType n = data.size();
 		for (SizeType i = 0; i < n; ++i) {
 			df[i] = 0.0;
 			for (SizeType ind = 0; ind < sc_.size(); ++ind) {
-				df[i] += derivativeEnergyThisCell(ind,i);
+				df[i] += derivativeEnergyThisCell(ind, i, data);
 			}
 		}
-
 	}
 
 private:
 
-	FieldType energyThisCell(SizeType ind) const
+	FieldType energyThisCell(SizeType ind, const VectorRealType& vdata) const
 	{
 		ComplexType sum = 0;
 		const SizeType lda = sc_.rows();
@@ -231,11 +171,11 @@ private:
 		ComplexType phase = getUnitPhase(ind);
 		for (SizeType i = 0; i < lda; ++i) {
 
-			buildVector(vi,data_(),i);
+			buildVector(vi, vdata, i);
 
 			for (SizeType j = 0; j < lda; ++j) {
 
-				buildVector(vj, data_(), j);
+				buildVector(vj, vdata, j);
 
 				if (pixelSize == 1)
 					sum += phase*std::real(sc_(i, j, ind))*scalarProduct(vi, vj);
@@ -271,23 +211,25 @@ private:
 		return sum;
 	}
 
-	FieldType derivativeEnergyThisCell(SizeType ind, SizeType index) const
+	FieldType derivativeEnergyThisCell(SizeType ind,
+	                                   SizeType index,
+	                                   const VectorRealType& vdata) const
 	{
 		SizeType lda = sc_.rows();
 		VectorRealType vi(3,0);
 		VectorRealType vj(3,0);
-		SizeType newIndex = index + 2*data_.fixedSpins();
+		SizeType newIndex = index + 2*fixedSpins_;
 		bool isPhi = (newIndex & 1);
 		if (isPhi) newIndex--;
 		newIndex = static_cast<SizeType>(0.5*newIndex);
 
 		ComplexType phase = getUnitPhase(ind);
 
-		buildDeltaVector(vi,data_(),newIndex,isPhi);
+		buildDeltaVector(vi, vdata, newIndex, isPhi);
 		const SizeType pixelSize = sc_.pixelSize();
 		ComplexType sum = 0;
 		for (SizeType j = 0; j < lda; ++j) {
-			buildVector(vj,data_(),j);
+			buildVector(vj, vdata, j);
 			if (pixelSize == 1)
 				sum += phase*std::real(sc_(newIndex,j,ind))*scalarProduct(vi,vj);
 			else
@@ -295,13 +237,13 @@ private:
 		}
 
 		for (SizeType i = 0; i < lda; ++i) {
-			buildVector(vi,data_(),i);
-			buildDeltaVector(vj,data_(),newIndex,isPhi);
+			buildVector(vi, vdata, i);
+			buildDeltaVector(vj, vdata, newIndex, isPhi);
 
 			if (pixelSize == 1)
 				sum += phase*std::real(sc_(i,newIndex,ind))*scalarProduct(vi,vj);
 			else
-				sum += phase*energyThisPixel(pixelSize, i,newIndex, ind, vi, vj);
+				sum += phase*energyThisPixel(pixelSize, i, newIndex, ind, vi, vj);
 		}
 
 		if (fabs(std::imag(sum)) > 1e-10) {
@@ -315,7 +257,7 @@ private:
 	                 const VectorRealType& src,
 	                 SizeType i) const
 	{
-		SizeType fixedSpins = data_.fixedSpins();
+		SizeType fixedSpins = fixedSpins_;
 		if (i < fixedSpins) {
 			dst[0] = dst[1] = 0;
 			dst[2] = 1;
@@ -336,7 +278,7 @@ private:
 	                      SizeType i,
 	                      SizeType isPhi) const
 	{
-		SizeType fixedSpins = data_.fixedSpins();
+		const SizeType fixedSpins = fixedSpins_;
 		if (i < fixedSpins) {
 			dst[0] = dst[1] = dst[2] = 0;
 			return;
@@ -389,7 +331,7 @@ private:
 
 	const VectorRealType& qvector_;
 	SpaceConnectorsType sc_;
-	ConfigurationType data_;
+	SizeType fixedSpins_;
 };
 
 }

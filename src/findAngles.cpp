@@ -5,6 +5,7 @@
 #include "EnergyNonCollinearFunction.h"
 #include "MinimizerParams.h"
 #include "PsimagLite.h"
+#include "InitConfig.h"
 
 void usage(const char *progName, const yasw::MinimizerParams<double>* minParams)
 {
@@ -36,15 +37,21 @@ void main2(PsimagLite::String jfile,
            int seed,
            const yasw::MinimizerParams<double>& minParams)
 {
-	EnergyFunctionType energy(jfile, qvector,minParams.verbose);
+	EnergyFunctionType energy(jfile, qvector, minParams.verbose);
 	SizeType totalSpins = energy.totalSpins();
+	typedef typename EnergyFunctionType::ComplexOrRealType ComplexOrRealType;
+	typedef yasw::EnergyCollinearFunction<ComplexOrRealType> EnergyCollinearFunctionType;
+	enum {isCollinear = PsimagLite::TypesEqual<EnergyCollinearFunctionType,
+	        EnergyFunctionType>::True};
+	typedef yasw::InitConfig<ComplexOrRealType, isCollinear> InitConfigType;
+	InitConfigType initConfig(afile, seed, totalSpins, fixedSpins, minParams.verbose);
+
 	typename EnergyFunctionType::ConfigurationType minConfig(totalSpins,
 	                                                         fixedSpins,
 	                                                         minParams.verbose,
-	                                                         afile,
-	                                                         seed);
+	                                                         initConfig);
 
-	energy.minimize(minConfig,minParams);
+	energy.minimize(minConfig, minParams);
 }
 
 int main(int argc, char** argv)

@@ -2,15 +2,20 @@
 #define ENERGY_C_FUNCTION_H
 #include "SpaceConnectors.h"
 #include "Vector.h"
+#include "InitConfig.h"
 
 namespace yasw {
 
-template<typename ComplexOrRealType>
+template<typename ComplexOrRealType_>
 class EnergyCollinearFunction {
 
+public:
+
+	typedef ComplexOrRealType_ ComplexOrRealType;
 	typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
 	typedef yasw::SpaceConnectors<ComplexOrRealType> SpaceConnectorsType;
 	typedef unsigned long long int  LongSizeType;
+	typedef InitConfig<ComplexOrRealType_, true> InitConfigType;
 
 	class Configuration {
 
@@ -19,8 +24,7 @@ class EnergyCollinearFunction {
 		Configuration(SizeType totalSpins,
 		              SizeType fixedSpins,
 		              bool,
-		              PsimagLite::String afile = "",
-		              SizeType seed = 0)
+		              const InitConfigType&)
 		    : data_(0),fixedSpins_(fixedSpins),mask_(0)
 		{
 			if (fixedSpins >= totalSpins) {
@@ -35,28 +39,11 @@ class EnergyCollinearFunction {
 				tmp <<= 1;
 			}
 
-			if (seed > 0) {
-				PsimagLite::String str("Configuration: No seed support yet");
-				str +=" for collinear configuration\n";
-				std::cerr<<"WARNING "<<str;
-			}
-
 			if (totalSpins >= 256*sizeof(LongSizeType)) {
 				PsimagLite::String str("Configuration: Configuration is");
 				str += " too big\n";
 				throw PsimagLite::RuntimeError(str);
 			}
-
-			if (afile != "") {
-				PsimagLite::String str("Configuration: No angles support yet");
-				str +=" for collinear configuration\n";
-				std::cerr<<"WARNING "<<str;
-			}
-		}
-
-		void fromRaw(LongSizeType x)
-		{
-			data_ = x;
 		}
 
 		bool isValid(LongSizeType x) const
@@ -93,11 +80,11 @@ public:
 		SizeType total = 1;
 		SizeType lda = size();
 		total <<= lda;
-		for (SizeType ket = 0; ket < total; ++ket) {
+		for (LongSizeType ket = 0; ket < total; ++ket) {
 			if (!config.isValid(ket)) continue;
 			RealType energy = this->operator()(ket);
 			if (energy < minEnergy) {
-				config.fromRaw(ket);
+				config() = ket; // save this config
 				minEnergy = energy;
 			}
 		}
@@ -105,7 +92,7 @@ public:
 		std::cout<<"Angles\n";
 		std::cout<<lda<<" 2\n";
 		for (SizeType i = 0; i < lda; ++i) {
-			int si = valueAt(config(),i);
+			int si = valueAt(config(), i);
 			if (si == 1)
 				std::cout<<"0 0\n";
 			else
@@ -123,7 +110,7 @@ private:
 	{
 		RealType sum = 0.0;
 		for (SizeType i = 0; i < sc_.size(); ++i) {
-			sum += energyThisCell(i,ket);
+			sum += energyThisCell(i, ket);
 		}
 
 		return sum;
