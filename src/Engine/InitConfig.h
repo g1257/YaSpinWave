@@ -3,7 +3,7 @@
 #include "Vector.h"
 #include "PsimagLite.h"
 #include "Angles.h"
-#include "MersenneTwister.h"
+#include "RandomGen.h"
 
 namespace yasw {
 
@@ -15,19 +15,20 @@ class InitConfig<ComplexOrRealType, true> {
 
 public:
 
+	typedef RandomGen<ComplexOrRealType> RandomGenType;
+
 	InitConfig(PsimagLite::String afile,
-	           int seed,
+	           RandomGenType& randomGen,
 	           SizeType totalSpins,
 	           SizeType fixedSpins,
 	           bool verbose)
 	    : afile_(afile),
-	      seed_(seed),
 	      totalSpins_(totalSpins),
 	      fixedSpins_(fixedSpins),
 	      verbose_(verbose)
 	{
-		if (seed > 0) {
-			PsimagLite::String str("InitConfig: No seed support yet");
+		if (randomGen.needsRandom()) {
+			PsimagLite::String str("InitConfig: No random support yet");
 			str +=" for collinear configuration\n";
 			std::cerr<<"WARNING "<<str;
 		}
@@ -42,8 +43,11 @@ public:
 
 private:
 
+	InitConfig(const InitConfig&) = delete;
+
+	InitConfig& operator=(const InitConfig&) = delete;
+
 	PsimagLite::String afile_;
-	int seed_;
 	SizeType totalSpins_;
 	SizeType fixedSpins_;
     bool verbose_;
@@ -57,14 +61,15 @@ public:
 	typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
 	typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
 	typedef Angles<RealType> AnglesType;
+	typedef RandomGen<ComplexOrRealType> RandomGenType;
 
 	InitConfig(PsimagLite::String afile,
-	           int seed,
+	           RandomGenType& randomGen,
 	           SizeType totalSpins,
 	           SizeType fixedSpins,
 	           bool verbose)
 	    : afile_(afile),
-	      seed_(seed),
+	      randomGen_(randomGen),
 	      totalSpins_(totalSpins),
 	      fixedSpins_(fixedSpins),
 	      verbose_(verbose)
@@ -77,7 +82,7 @@ public:
         const SizeType fixedSpins = initConfig.fixedSpins_;
         const bool verbose = initConfig.verbose_;
 
-		if (initConfig.seed_ > 0 && initConfig.afile_ != "") {
+		if (initConfig.randomGen_.needsRandom() && initConfig.afile_ != "") {
 			PsimagLite::String msg("Configuration: Providing both ");
 			msg += " seed and angles file is an error\n";
 			err(msg);
@@ -107,11 +112,15 @@ public:
 			return;
 		}
 
-		if (initConfig.seed_ == 0)
+		if (!initConfig.randomGen_.needsRandom())
 			err("InitConfig: Need seed > 0\n");
 
-		randomize(data, initConfig.seed_);
+		initConfig.randomGen_.randomize(data);
 	}
+
+	InitConfig(const InitConfig&) = delete;
+
+	InitConfig& operator=(const InitConfig&) = delete;
 
 private:
 
@@ -123,18 +132,8 @@ private:
 		return true;
 	}
 
-	static void randomize(VectorRealType& data, int seed)
-	{
-		PsimagLite::MersenneTwister rng(seed);
-		SizeType lda = static_cast<SizeType>(data.size()*0.5);
-		for (SizeType i = 0; i < lda; ++i) {
-			data[2*i] = rng() * M_PI;
-			data[2*i+1] = rng() * 2.0*M_PI;
-		}
-	}
-
 	PsimagLite::String afile_;
-	int seed_;
+	const RandomGenType& randomGen_;
 	SizeType totalSpins_;
 	SizeType fixedSpins_;
     bool verbose_;

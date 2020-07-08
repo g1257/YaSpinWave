@@ -6,6 +6,7 @@
 #include "MinimizerParams.h"
 #include "PsimagLite.h"
 #include "InitConfig.h"
+#include "RandomGen.h"
 
 void usage(const char *progName, const yasw::MinimizerParams<double>* minParams)
 {
@@ -41,10 +42,13 @@ void main2(PsimagLite::String jfile,
 	SizeType totalSpins = energy.totalSpins();
 	typedef typename EnergyFunctionType::ComplexOrRealType ComplexOrRealType;
 	typedef yasw::EnergyCollinearFunction<ComplexOrRealType> EnergyCollinearFunctionType;
+	typedef yasw::RandomGen<ComplexOrRealType> RandomGenType;
 	enum {isCollinear = PsimagLite::TypesEqual<EnergyCollinearFunctionType,
 	        EnergyFunctionType>::True};
 	typedef yasw::InitConfig<ComplexOrRealType, isCollinear> InitConfigType;
-	InitConfigType initConfig(afile, seed, totalSpins, fixedSpins, minParams.verbose);
+
+	RandomGenType randomGen(seed);
+	InitConfigType initConfig(afile, randomGen, totalSpins, fixedSpins, minParams.verbose);
 
 	typename EnergyFunctionType::ConfigurationType minConfig(totalSpins,
 	                                                         fixedSpins,
