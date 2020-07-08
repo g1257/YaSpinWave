@@ -112,9 +112,6 @@ public:
 			return;
 		}
 
-		if (!initConfig.randomGen_.needsRandom())
-			err("InitConfig: Need seed > 0\n");
-
 		initConfig.randomGen_.randomize(data);
 	}
 

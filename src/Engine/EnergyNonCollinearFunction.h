@@ -82,22 +82,29 @@ public:
 	    : qvector_(qvector), sc_(jfile, verbose), fixedSpins_(0)
 	{}
 
-	void minimize(ConfigurationType& config,
-	              const MinimizerParams<RealType>& minParams)
+	RealType minimize(ConfigurationType& config,
+	                  const MinimizerParams<RealType>& minParams,
+	                  SizeType tryIndex)
 	{
 		fixedSpins_ = config.fixedSpins();
 
 		if (sc_.rows() <= fixedSpins_) {
 			PsimagLite::String msg("Configuration: ");
 			msg += "Too many fixed spins\n";
-			throw PsimagLite::RuntimeError(msg);
+			err(msg);
 		}
 
 		assert(config.size()+2*fixedSpins_ == 2*sc_.rows());
 
 		MinimizerType min(*this, minParams.maxIter,minParams.verbose);
-		std::cerr<<"Initial config\n";
-		config.print(std::cerr);
+
+		const bool printInitConfig = (tryIndex == 0 || minParams.verbose);
+
+		if (printInitConfig) {
+			std::cerr<<"Initial config for try number "<<tryIndex<<"\n";
+			config.print(std::cerr);
+		}
+
 		int used = 0;
 		if (minParams.algo == MinimizerParams<RealType>::SIMPLEX) {
 			used = min.simplex(config(),
@@ -112,6 +119,11 @@ public:
 		}
 
 		++used;
+
+		const bool printFooter = (tryIndex == 0 || minParams.verbose);
+
+		if (!printFooter) return operator ()(config()); // <--- EARLY EXIT HERE
+
 		std::cerr<<"Minimizer params\n";
 		std::cerr<<minParams;
 		std::cerr<<"EnergyNonCollinearFunction::minimize(): ";
@@ -122,11 +134,8 @@ public:
 		}
 
 		std::cerr<<used<<" iterations.\n";
-		std::cerr<<"Energy at Minimum= "<<operator()(config());
-		std::cerr<<"\n";
 
-		std::cout<<"Angles\n";
-		config.print(std::cout);
+		return operator ()(config());
 	}
 
 	SizeType totalSpins() const { return sc_.rows(); }

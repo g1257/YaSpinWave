@@ -25,7 +25,7 @@ public:
 		              SizeType fixedSpins,
 		              bool,
 		              const InitConfigType&)
-		    : data_(0),fixedSpins_(fixedSpins),mask_(0)
+		    : totalSpins_(totalSpins), fixedSpins_(fixedSpins), data_(0), mask_(0)
 		{
 			if (fixedSpins >= totalSpins) {
 				PsimagLite::String str("Configuration: ");
@@ -51,14 +51,34 @@ public:
 			return ((mask_&x) == mask_);
 		}
 
+		void print(std::ostream& os) const
+		{
+			os<<totalSpins_<<" 2\n";
+			for (SizeType i = 0; i < totalSpins_; ++i) {
+				int si = valueAt(data_, i);
+				if (si == 1)
+					os<<"0 0\n";
+				else
+					os<<M_PI<<" 0\n";
+			}
+		}
+
 		LongSizeType& operator()() { return data_; }
 
 		const LongSizeType& operator()() const { return data_; }
 
+		static int valueAt(LongSizeType ket, SizeType i)
+		{
+			LongSizeType mask = 1;
+			mask <<= i;
+			return (mask & ket) ? 1 : -1;
+		}
+
 	private:
 
-		LongSizeType data_;
+		SizeType totalSpins_;
 		SizeType fixedSpins_;
+		LongSizeType data_;
 		LongSizeType mask_;
 	};
 
@@ -74,7 +94,7 @@ public:
 	{}
 
 	template<typename DummyType>
-	void minimize(ConfigurationType& config, const DummyType&) const
+	RealType minimize(ConfigurationType& config, const DummyType&, SizeType) const
 	{
 		RealType minEnergy = 1e10;
 		SizeType total = 1;
@@ -92,12 +112,14 @@ public:
 		std::cout<<"Angles\n";
 		std::cout<<lda<<" 2\n";
 		for (SizeType i = 0; i < lda; ++i) {
-			int si = valueAt(config(), i);
+			int si = Configuration::valueAt(config(), i);
 			if (si == 1)
 				std::cout<<"0 0\n";
 			else
 				std::cout<<M_PI<<" 0\n";
 		}
+
+		return minEnergy;
 	}
 
 	SizeType totalSpins() const { return sc_.rows(); }
@@ -121,20 +143,13 @@ private:
 		RealType sum = 0;
 		SizeType lda = size();
 		for (SizeType i = 0; i < lda; ++i) {
-			int si = valueAt(ket,i);
+			int si = Configuration::valueAt(ket, i);
 			for (SizeType j = 0; j < lda; ++j) {
-				sum += std::real(sc_(i,j,ind))*si*valueAt(ket,j);
+				sum += std::real(sc_(i,j,ind))*si*Configuration::valueAt(ket, j);
 			}
 		}
 
 		return sum;
-	}
-
-	int valueAt(LongSizeType ket, SizeType i) const
-	{
-		LongSizeType mask = 1;
-		mask <<= i;
-		return (mask & ket) ? 1 : -1;
 	}
 
 	SpaceConnectorsType sc_;

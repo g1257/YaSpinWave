@@ -17,7 +17,8 @@ void usage(const char *progName, const yasw::MinimizerParams<double>* minParams)
 	std::cerr<<"\t-c Use collinear\n";
 	std::cerr<<"Below options only for non collinear\n";
 	std::cerr<<"\t-a anglesFile (initial angles for minimizer)\n";
-	std::cerr<<"\t-s seed\n";
+	std::cerr<<"\t-s seed (cannot be used with anglesFiles)\n";
+	std::cerr<<"\t-N tries (number of random tries; cannot be used with anglesFiles)\n";
 	std::cerr<<"\t-C Use conjugate gradient\n";
 	std::cerr<<"\t-m maxIter (max. iterations for minimizer)\n";
 	std::cerr<<"\t-d delta (x advancement for minimizer)\n";
@@ -36,26 +37,60 @@ void main2(PsimagLite::String jfile,
            const typename EnergyFunctionType::VectorRealType& qvector,
            PsimagLite::String afile,
            int seed,
+           SizeType randomTries,
            const yasw::MinimizerParams<double>& minParams)
 {
 	EnergyFunctionType energy(jfile, qvector, minParams.verbose);
 	SizeType totalSpins = energy.totalSpins();
 	typedef typename EnergyFunctionType::ComplexOrRealType ComplexOrRealType;
+	typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
 	typedef yasw::EnergyCollinearFunction<ComplexOrRealType> EnergyCollinearFunctionType;
 	typedef yasw::RandomGen<ComplexOrRealType> RandomGenType;
 	enum {isCollinear = PsimagLite::TypesEqual<EnergyCollinearFunctionType,
-	        EnergyFunctionType>::True};
+		  EnergyFunctionType>::True};
 	typedef yasw::InitConfig<ComplexOrRealType, isCollinear> InitConfigType;
+	typedef typename EnergyFunctionType::ConfigurationType ConfigurationType;
+
+	if (seed == 0 && afile == "")
+		seed = 1234;
 
 	RandomGenType randomGen(seed);
-	InitConfigType initConfig(afile, randomGen, totalSpins, fixedSpins, minParams.verbose);
 
-	typename EnergyFunctionType::ConfigurationType minConfig(totalSpins,
-	                                                         fixedSpins,
-	                                                         minParams.verbose,
-	                                                         initConfig);
+	if (randomTries > 1 && isCollinear)
+		err("findAngles: random tries > 1 cannot be used for collinear\n");
 
-	energy.minimize(minConfig, minParams);
+	RealType minEnergy = 0;
+	ConfigurationType* savedConfig = 0;
+	for (SizeType i = 0; i < randomTries; ++i) {
+		InitConfigType initConfig(afile, randomGen, totalSpins, fixedSpins, minParams.verbose);
+
+		ConfigurationType minConfig(totalSpins,
+		                            fixedSpins,
+		                            minParams.verbose,
+		                            initConfig);
+
+		const RealType energyValue = energy.minimize(minConfig, minParams, i);
+
+		if (i == 0 || energyValue < minEnergy) {
+			minEnergy = energyValue;
+			if (!savedConfig)
+				savedConfig = new ConfigurationType(minConfig);
+			else
+				*savedConfig = minConfig;
+		}
+
+		if (!isCollinear && minParams.verbose) {
+			std::cerr<<"Energy at Minimum= "<<energyValue<<"\n";
+			std::cout<<"Angles\n";
+			minConfig.print(std::cout);
+		}
+	}
+
+	std::cerr<<"FINAL Energy at Minimum= "<<minEnergy<<"\n";
+	std::cout<<"Angles\n";
+	savedConfig->print(std::cout);
+	delete savedConfig;
+	savedConfig = 0;
 }
 
 int main(int argc, char** argv)
@@ -83,9 +118,9 @@ int main(int argc, char** argv)
 	SizeType saveEvery = 0;
 	PsimagLite::Vector<PsimagLite::String>::Type tokens;
 	PsimagLite::String delimiter = ",";
-	PsimagLite::String str;
+	SizeType randomTries = 1;
 
-	while ((opt = getopt(argc, argv,"j:s:m:d:D:t:p:a:F:S:q:cvC")) != -1) {
+	while ((opt = getopt(argc, argv,"j:s:m:d:D:t:p:a:F:S:q:N:cvC")) != -1) {
 		switch (opt) {
 		case 'j':
 			jfile = optarg;
@@ -120,6 +155,9 @@ int main(int argc, char** argv)
 		case 'F':
 			fixedSpins = atoi(optarg);
 			break;
+		case 'N':
+			randomTries = atoi(optarg);
+			break;
 		case 'C':
 			algo = MinimizerParamsType::CONJUGATE_GRADIENT;
 			break;
@@ -151,9 +189,9 @@ int main(int argc, char** argv)
 	}
 
 	if (collinear) {
-		main2<EnergyCollinearFunctionType>(jfile,fixedSpins,q,afile,seed,minParams);
+		main2<EnergyCollinearFunctionType>(jfile,fixedSpins,q,afile,seed,randomTries,minParams);
 	} else {
-		main2<EnergyNonCollinearFunctionType>(jfile,fixedSpins,q,afile,seed,minParams);
+		main2<EnergyNonCollinearFunctionType>(jfile,fixedSpins,q,afile,seed,randomTries,minParams);
 	}
 }
 

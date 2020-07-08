@@ -30,6 +30,8 @@ public:
 
 	void randomize(VectorRealType& data) const
 	{
+		if (!needsRandom())
+			err("RandomGen: INTERNAL ERROR\n");
 
 		SizeType lda = static_cast<SizeType>(data.size()*0.5);
 		for (SizeType i = 0; i < lda; ++i) {
