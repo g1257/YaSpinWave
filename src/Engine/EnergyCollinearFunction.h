@@ -89,8 +89,9 @@ public:
 
 	EnergyCollinearFunction(PsimagLite::String jfile,
 	                        const VectorRealType&,
+	                        SizeType pixel,
 	                        bool verbose)
-	    : sc_(jfile, verbose)
+	    : sc_(jfile, pixel, verbose)
 	{}
 
 	template<typename DummyType>

@@ -78,8 +78,9 @@ public:
 
 	EnergyNonCollinearFunction(PsimagLite::String jfile,
 	                           const VectorRealType& qvector,
+	                           SizeType pixel,
 	                           bool verbose)
-	    : qvector_(qvector), sc_(jfile, verbose), fixedSpins_(0)
+	    : qvector_(qvector), sc_(jfile, pixel, verbose), fixedSpins_(0)
 	{}
 
 	RealType minimize(ConfigurationType& config,

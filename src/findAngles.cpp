@@ -35,12 +35,13 @@ template<typename EnergyFunctionType>
 void main2(PsimagLite::String jfile,
            SizeType fixedSpins,
            const typename EnergyFunctionType::VectorRealType& qvector,
+           SizeType pixel,
            PsimagLite::String afile,
            int seed,
            SizeType randomTries,
            const yasw::MinimizerParams<double>& minParams)
 {
-	EnergyFunctionType energy(jfile, qvector, minParams.verbose);
+	EnergyFunctionType energy(jfile, qvector, pixel, minParams.verbose);
 	SizeType totalSpins = energy.totalSpins();
 	typedef typename EnergyFunctionType::ComplexOrRealType ComplexOrRealType;
 	typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
@@ -119,8 +120,9 @@ int main(int argc, char** argv)
 	PsimagLite::Vector<PsimagLite::String>::Type tokens;
 	PsimagLite::String delimiter = ",";
 	SizeType randomTries = 1;
+	SizeType pixel = 1;
 
-	while ((opt = getopt(argc, argv,"j:s:m:d:D:t:p:a:F:S:q:N:cvC")) != -1) {
+	while ((opt = getopt(argc, argv,"j:s:m:d:D:t:p:P:a:F:S:q:N:cvC")) != -1) {
 		switch (opt) {
 		case 'j':
 			jfile = optarg;
@@ -148,6 +150,9 @@ int main(int argc, char** argv)
 			break;
 		case 'p':
 			prec = atoi(optarg);
+			break;
+		case 'P':
+			pixel = atoi(optarg);
 			break;
 		case 'a':
 			afile = optarg;
@@ -189,9 +194,23 @@ int main(int argc, char** argv)
 	}
 
 	if (collinear) {
-		main2<EnergyCollinearFunctionType>(jfile,fixedSpins,q,afile,seed,randomTries,minParams);
+		main2<EnergyCollinearFunctionType>(jfile,
+		                                   fixedSpins,
+		                                   q,
+		                                   pixel,
+		                                   afile,
+		                                   seed,
+		                                   randomTries,
+		                                   minParams);
 	} else {
-		main2<EnergyNonCollinearFunctionType>(jfile,fixedSpins,q,afile,seed,randomTries,minParams);
+		main2<EnergyNonCollinearFunctionType>(jfile,
+		                                      fixedSpins,
+		                                      q,
+		                                      pixel,
+		                                      afile,
+		                                      seed,
+		                                      randomTries,
+		                                      minParams);
 	}
 }
 

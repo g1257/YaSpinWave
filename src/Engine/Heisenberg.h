@@ -35,10 +35,11 @@ public:
 
 	Heisenberg(const EngineParamsType& engineParams,
 	           const GeometryType& geometry,
+	           SizeType pixelSize,
 	           IoInType& io)
 	    : dynVars_(geometry.unitCellSize,engineParams),
 	      spinOperations_(geometry,engineParams),
-	      energy_(geometry.jfile, geometry.qvector, geometry.verbose)
+	      energy_(geometry.jfile, geometry.qvector, pixelSize, geometry.verbose)
 	{}
 
 	DynVarsType& dynVars() { return dynVars_; }

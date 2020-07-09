@@ -6,7 +6,7 @@
 
 void usage(const char *progName)
 {
-	std::cerr<<"Usage: "<<progName<<" -m file -q q0,q1[,q2] [-v]\n";
+	std::cerr<<"Usage: "<<progName<<" -m file -q q0,q1[,q2] [-P pixelSize=1] [-v]\n";
 }
 
 int main(int argc, char** argv)
@@ -21,9 +21,9 @@ int main(int argc, char** argv)
 	bool verbose = false;
 	PsimagLite::Vector<PsimagLite::String>::Type tokens;
 	PsimagLite::String delimiter = ",";
-	PsimagLite::String str;
+	SizeType pixel = 1;
 
-	while ((opt = getopt(argc, argv,"m:q:v")) != -1) {
+	while ((opt = getopt(argc, argv,"m:q:P:v")) != -1) {
 		switch (opt) {
 		case 'm':
 			mfile = optarg;
@@ -33,6 +33,9 @@ int main(int argc, char** argv)
 			break;
 		case 'q':
 			PsimagLite::split(tokens, optarg, delimiter);
+			break;
+		case 'P':
+			pixel = atoi(optarg);
 			break;
 		default:
 			usage(argv[0]);
@@ -45,7 +48,7 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	MatrixReciprocalSpaceType matrixReciprocal(mfile,verbose);
+	MatrixReciprocalSpaceType matrixReciprocal(mfile, pixel, verbose);
 
 	MatrixReciprocalSpaceType::VectorRealType q(tokens.size());
 	for (SizeType i = 0; i < q.size(); ++i) {

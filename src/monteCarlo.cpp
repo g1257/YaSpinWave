@@ -61,15 +61,20 @@ typedef Spf::Engine<ParametersEngineType,
 int main(int argc, char* argv[])
 {
 	PsimagLite::String filename="";
+	SizeType pixelSize = 1;
+
 	int opt = 0;
 	PsimagLite::String strUsage(argv[0]);
-	strUsage += " -f filename";
+	strUsage += " -f filename [-P pixelSize]";
 	yasw::InputCheckMonteCarlo inputCheck;
 
-	while ((opt = getopt(argc, argv,"f:")) != -1) {
+	while ((opt = getopt(argc, argv,"f:P:")) != -1) {
 		switch (opt) {
 		case 'f':
 			filename = optarg;
+			break;
+		case 'P':
+			pixelSize = atoi(optarg);
 			break;
 		default:
 			inputCheck.usageMain(strUsage);
@@ -90,9 +95,9 @@ int main(int argc, char* argv[])
 	std::cerr<<engineParams;
 
 	GeometryType geometry(io);
-	ModelType model(engineParams,geometry,io);
+	ModelType model(engineParams, geometry, pixelSize, io);
 
-	EngineType engine(engineParams,model,io);
+	EngineType engine(engineParams, model, io);
 
 	engine.main();
 }

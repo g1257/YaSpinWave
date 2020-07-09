@@ -17,8 +17,8 @@ public:
 	typedef typename SpaceConnectorsType::MatrixComplexOrRealType MatrixType;
 	typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
 
-	MatrixReciprocalSpace(PsimagLite::String mfile, bool verbose)
-	    : sc_(mfile,verbose),verbose_(verbose)
+	MatrixReciprocalSpace(PsimagLite::String mfile, SizeType pixelSize, bool verbose)
+	    : sc_(mfile, pixelSize, verbose), verbose_(verbose)
 	{}
 
 	MatrixType getMatrix(const VectorRealType& q) const

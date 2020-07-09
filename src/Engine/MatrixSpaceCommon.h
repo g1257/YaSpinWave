@@ -20,8 +20,9 @@ public:
 
 	MatrixSpaceCommon(PsimagLite::String jfile,
 	                  PsimagLite::String afile,
+	                  SizeType pixelSize,
 	                  bool verbose)
-	    : sc_(jfile,verbose),a_(afile,verbose)
+	    : sc_(jfile, pixelSize, verbose), a_(afile, verbose)
 	{}
 
 	SizeType size() const { return sc_.size(); }
