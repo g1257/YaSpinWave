@@ -81,8 +81,8 @@ void main2(PsimagLite::String jfile,
 
 		if (!isCollinear && minParams.verbose) {
 			std::cerr<<"Energy at Minimum= "<<energyValue<<"\n";
-			std::cout<<"Angles\n";
-			minConfig.print(std::cout);
+			std::cerr<<"Angles\n";
+			minConfig.print(std::cerr);
 		}
 	}
 
