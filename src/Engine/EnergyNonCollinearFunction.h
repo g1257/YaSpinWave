@@ -15,6 +15,7 @@ public:
 
 	typedef ComplexOrRealType_ ComplexOrRealType;
 	typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
+	typedef PsimagLite::Matrix<RealType> MatrixRealType;
 	typedef yasw::SpaceConnectors<ComplexOrRealType> SpaceConnectorsType;
 	typedef EnergyNonCollinearFunction<ComplexOrRealType> ThisType;
 	typedef std::complex<RealType> ComplexType;
@@ -77,10 +78,10 @@ public:
 	typedef PsimagLite::Minimizer<RealType,ThisType> MinimizerType;
 
 	EnergyNonCollinearFunction(PsimagLite::String jfile,
-	                           const VectorRealType& qvector,
+	                           const MatrixRealType& qmatrix,
 	                           SizeType pixel,
 	                           bool verbose)
-	    : qvector_(qvector), sc_(jfile, pixel, verbose), fixedSpins_(0)
+	    : qmatrix_(qmatrix), sc_(jfile, pixel, verbose), fixedSpins_(0)
 	{}
 
 	RealType minimize(ConfigurationType& config,
@@ -335,11 +336,29 @@ private:
 			nvector[i] = sc_.nmatrix(ind,i);
 		}
 
-		RealType tmp = scalarProduct(nvector,qvector_);
+		VectorRealType qvector;
+		getQvector(qvector, ind);
+
+		RealType tmp = scalarProduct(nvector, qvector);
 		return ComplexType(cos(tmp),sin(tmp));
 	}
 
-	const VectorRealType& qvector_;
+	void getQvector(VectorRealType& qvector, SizeType ind) const
+	{
+		const SizeType rows = qmatrix_.rows();
+		const SizeType cols = qmatrix_.cols();
+
+		if (rows == 1) ind = 0;
+
+		if (ind > rows)
+			err("ind=" + ttos(ind) + " > rows= " + ttos(rows) + " in getQvector\n");
+
+		for (SizeType i = 0; i < cols; ++i)
+			qvector[i] = qmatrix_(ind, i);
+
+	}
+
+	const MatrixRealType& qmatrix_;
 	SpaceConnectorsType sc_;
 	SizeType fixedSpins_;
 };
