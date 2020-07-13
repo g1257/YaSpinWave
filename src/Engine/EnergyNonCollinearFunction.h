@@ -351,8 +351,9 @@ private:
 		if (rows == 1) ind = 0;
 
 		if (ind > rows)
-			err("ind=" + ttos(ind) + " > rows= " + ttos(rows) + " in getQvector\n");
+			return;
 
+		qvector.resize(cols);
 		for (SizeType i = 0; i < cols; ++i)
 			qvector[i] = qmatrix_(ind, i);
 
