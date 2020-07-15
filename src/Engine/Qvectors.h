@@ -32,9 +32,9 @@ public:
 			hasQvector0 = true;
 		} catch (std::exception&) {}
 
-		//bool valid = (hasQvector ^ hasQvector0);
-		//if (!valid)
-		//	err("Qvectors: If Qvector appears then Qvectors must not\n");
+		bool valid = (hasQvector ^ hasQvector0);
+		if (!valid)
+			err("Qvectors: If Qvector appears then Qvectors must not\n");
 
 		if (hasQvector) {
 			const SizeType cols = v.size();
@@ -43,8 +43,6 @@ public:
 				qmatrix_(0, i) = v[i];
 			return;
 		}
-
-		if (!hasQvector0 || rows == 0) return;
 
 		SizeType cols = 0;
 		for (SizeType row = 0; row < rows; ++row) {
@@ -73,7 +71,7 @@ public:
 			err("Qvectors::ctor(): FATAL: -q and -Q cannot be BOTH specified\n");
 
 		if (tsize == 0 && qfile == "")
-			return;
+			err("Qvectors::ctor(): FATAL: Exactly one of -q or -Q MUST be specified\n");
 
 		if (tsize > 0) {
 			qmatrix_.resize(1, tsize);
