@@ -4,17 +4,13 @@
 #include "InputNg.h"
 #include "MersenneTwister.h"
 #include "Heisenberg.h"
-#include "Qvectors.h"
 
-template<typename InputType, typename RealType>
+template<typename InputType>
 class BogusGeometry {
 
 public:
 
-	typedef PsimagLite::Matrix<RealType> MatrixRealType;
-	typedef yasw::Qvectors<MatrixRealType> QvectorsType;
-
-	BogusGeometry(InputType& io) : qvectors(io)
+	BogusGeometry(InputType& io)
 	{
 		io.readline(jfile,"Jinput=");
 		std::ifstream fin(jfile.c_str());
@@ -41,17 +37,19 @@ public:
 
 		io.readline(tmp,"Verbose=");
 		verbose = (tmp > 0);
+
+		io.read(qvector,"Qvector ");
 	}
 
 	int unitCellSize;
 	PsimagLite::String jfile;
 	bool verbose;
-	QvectorsType qvectors;
+	PsimagLite::Vector<double>::Type qvector;
 };
 
 typedef double RealType;
 typedef PsimagLite::InputNg<yasw::InputCheckMonteCarlo> InputNgType;
-typedef BogusGeometry<InputNgType::Readable, RealType> GeometryType;
+typedef BogusGeometry<InputNgType::Readable> GeometryType;
 typedef Spf::ParametersEngine<RealType,InputNgType::Readable> ParametersEngineType;
 typedef yasw::Heisenberg<ParametersEngineType,GeometryType> ModelType;
 typedef PsimagLite::MersenneTwister RngType;

@@ -7,7 +7,6 @@
 #include "PsimagLite.h"
 #include "InitConfig.h"
 #include "RandomGen.h"
-#include "Qvectors.h"
 
 void usage(const char *progName, const yasw::MinimizerParams<double>* minParams)
 {
@@ -35,14 +34,14 @@ void usage(const char *progName, const yasw::MinimizerParams<double>* minParams)
 template<typename EnergyFunctionType>
 void main2(PsimagLite::String jfile,
            SizeType fixedSpins,
-           const typename EnergyFunctionType::MatrixRealType& qmatrix,
+           const typename EnergyFunctionType::VectorRealType& qvector,
            SizeType pixel,
            PsimagLite::String afile,
            int seed,
            SizeType randomTries,
            const yasw::MinimizerParams<double>& minParams)
 {
-	EnergyFunctionType energy(jfile, qmatrix, pixel, minParams.verbose);
+	EnergyFunctionType energy(jfile, qvector, pixel, minParams.verbose);
 	SizeType totalSpins = energy.totalSpins();
 	typedef typename EnergyFunctionType::ComplexOrRealType ComplexOrRealType;
 	typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
@@ -114,8 +113,7 @@ int main(int argc, char** argv)
 	RealType tol = 1e-4;
 	bool verbose = false;
 	RealType prec = 8;
-	PsimagLite::String afile;
-	PsimagLite::String qfile;
+	PsimagLite::String afile("");
 	SizeType fixedSpins = 1;
 	EnumAlgo algo = MinimizerParamsType::SIMPLEX;
 	SizeType saveEvery = 0;
@@ -124,7 +122,7 @@ int main(int argc, char** argv)
 	SizeType randomTries = 1;
 	SizeType pixel = 1;
 
-	while ((opt = getopt(argc, argv,"j:s:m:d:D:t:p:P:a:F:S:q:Q:N:cvC")) != -1) {
+	while ((opt = getopt(argc, argv,"j:s:m:d:D:t:p:P:a:F:S:q:N:cvC")) != -1) {
 		switch (opt) {
 		case 'j':
 			jfile = optarg;
@@ -174,9 +172,6 @@ int main(int argc, char** argv)
 		case 'q':
 			PsimagLite::split(tokens, optarg, delimiter);
 			break;
-		case 'Q':
-			qfile = optarg;
-			break;
 		default:
 			usage(argv[0],0);
 			return 1;
@@ -192,14 +187,16 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	yasw::Qvectors<EnergyCollinearFunctionType::MatrixRealType> qvectors(tokens,
-	                                                                     qfile,
-	                                                                     verbose);
+	PsimagLite::Vector<RealType>::Type q(tokens.size(),0);
+	for (SizeType i = 0; i < q.size(); ++i) {
+		q[i] = atof(tokens[i].c_str());
+		if (verbose) std::cerr<<"q["<<i<<"]= "<<q[i]<<"\n";
+	}
 
 	if (collinear) {
 		main2<EnergyCollinearFunctionType>(jfile,
 		                                   fixedSpins,
-		                                   qvectors(),
+		                                   q,
 		                                   pixel,
 		                                   afile,
 		                                   seed,
@@ -208,7 +205,7 @@ int main(int argc, char** argv)
 	} else {
 		main2<EnergyNonCollinearFunctionType>(jfile,
 		                                      fixedSpins,
-		                                      qvectors(),
+		                                      q,
 		                                      pixel,
 		                                      afile,
 		                                      seed,

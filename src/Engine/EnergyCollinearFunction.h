@@ -86,10 +86,9 @@ public:
 
 	typedef  PsimagLite::Vector<double>::Type VectorRealType;
 	typedef Configuration ConfigurationType;
-	typedef PsimagLite::Matrix<RealType> MatrixRealType;
 
 	EnergyCollinearFunction(PsimagLite::String jfile,
-	                        const MatrixRealType&,
+	                        const VectorRealType&,
 	                        SizeType pixel,
 	                        bool verbose)
 	    : sc_(jfile, pixel, verbose)
