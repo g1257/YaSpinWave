@@ -76,11 +76,10 @@ public:
 	typedef Configuration ConfigurationType;
 	typedef PsimagLite::Minimizer<RealType,ThisType> MinimizerType;
 
-	EnergyNonCollinearFunction(PsimagLite::String jfile,
+	EnergyNonCollinearFunction(const SpaceConnectorsType& spaceConnectors,
 	                           const VectorRealType& qvector,
-	                           SizeType pixel,
-	                           bool verbose)
-	    : qvector_(qvector), sc_(jfile, pixel, verbose), fixedSpins_(0)
+	                           const VectorRealType& moduli)
+	    : qvector_(qvector), moduli_(moduli), sc_(spaceConnectors), fixedSpins_(0)
 	{}
 
 	RealType minimize(ConfigurationType& config,
@@ -185,12 +184,13 @@ private:
 
 			for (SizeType j = 0; j < lda; ++j) {
 
+				const RealType modulus = moduli_[i]*moduli_[j];
 				buildVector(vj, vdata, j);
 
 				if (pixelSize == 1)
-					sum += phase*std::real(sc_(i, j, ind))*scalarProduct(vi, vj);
+					sum += phase*modulus*std::real(sc_(i, j, ind))*scalarProduct(vi, vj);
 				else
-					sum += phase*energyThisPixel(pixelSize, i, j, ind, vi, vj);
+					sum += phase*modulus*energyThisPixel(pixelSize, i, j, ind, vi, vj);
 			}
 		}
 
@@ -340,7 +340,8 @@ private:
 	}
 
 	const VectorRealType& qvector_;
-	SpaceConnectorsType sc_;
+	const VectorRealType& moduli_;
+	const SpaceConnectorsType& sc_;
 	SizeType fixedSpins_;
 };
 

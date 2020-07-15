@@ -4,6 +4,7 @@
 #include "InputNg.h"
 #include "MersenneTwister.h"
 #include "Heisenberg.h"
+#include "SpinModulus.h"
 
 template<typename InputType>
 class BogusGeometry {
@@ -52,11 +53,13 @@ typedef PsimagLite::InputNg<yasw::InputCheckMonteCarlo> InputNgType;
 typedef BogusGeometry<InputNgType::Readable> GeometryType;
 typedef Spf::ParametersEngine<RealType,InputNgType::Readable> ParametersEngineType;
 typedef yasw::Heisenberg<ParametersEngineType,GeometryType> ModelType;
+typedef ModelType::SpaceConnectorsType SpaceConnectorsType;
 typedef PsimagLite::MersenneTwister RngType;
 typedef Spf::Engine<ParametersEngineType,
                     ModelType,
                     InputNgType::Readable,
                     RngType> EngineType;
+typedef yasw::SpinModulus<PsimagLite::Vector<RealType>::Type> SpinModulusType;
 
 int main(int argc, char* argv[])
 {
@@ -67,14 +70,18 @@ int main(int argc, char* argv[])
 	PsimagLite::String strUsage(argv[0]);
 	strUsage += " -f filename [-P pixelSize]";
 	yasw::InputCheckMonteCarlo inputCheck;
+	PsimagLite::String spinModulusFile;
 
-	while ((opt = getopt(argc, argv,"f:P:")) != -1) {
+	while ((opt = getopt(argc, argv,"f:P:M:")) != -1) {
 		switch (opt) {
 		case 'f':
 			filename = optarg;
 			break;
 		case 'P':
 			pixelSize = atoi(optarg);
+			break;
+		case 'M':
+			spinModulusFile = optarg;
 			break;
 		default:
 			inputCheck.usageMain(strUsage);
@@ -95,7 +102,9 @@ int main(int argc, char* argv[])
 	std::cerr<<engineParams;
 
 	GeometryType geometry(io);
-	ModelType model(engineParams, geometry, pixelSize, io);
+	SpaceConnectorsType spaceConnectors(geometry.jfile, pixelSize, geometry.verbose);
+	SpinModulusType spinModulus(spinModulusFile, spaceConnectors.rows());
+	ModelType model(engineParams, geometry, spaceConnectors, spinModulus());
 
 	EngineType engine(engineParams, model, io);
 

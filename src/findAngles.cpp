@@ -7,6 +7,7 @@
 #include "PsimagLite.h"
 #include "InitConfig.h"
 #include "RandomGen.h"
+#include "SpinModulus.h"
 
 void usage(const char *progName, const yasw::MinimizerParams<double>* minParams)
 {
@@ -32,16 +33,16 @@ void usage(const char *progName, const yasw::MinimizerParams<double>* minParams)
 }
 
 template<typename EnergyFunctionType>
-void main2(PsimagLite::String jfile,
+void main2(const typename EnergyFunctionType::SpaceConnectorsType& spaceConnectors,
            SizeType fixedSpins,
            const typename EnergyFunctionType::VectorRealType& qvector,
-           SizeType pixel,
+           const yasw::SpinModulus<typename EnergyFunctionType::VectorRealType>& spinModulus,
            PsimagLite::String afile,
            int seed,
            SizeType randomTries,
            const yasw::MinimizerParams<double>& minParams)
 {
-	EnergyFunctionType energy(jfile, qvector, pixel, minParams.verbose);
+	EnergyFunctionType energy(spaceConnectors, qvector, spinModulus());
 	SizeType totalSpins = energy.totalSpins();
 	typedef typename EnergyFunctionType::ComplexOrRealType ComplexOrRealType;
 	typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
@@ -98,8 +99,10 @@ int main(int argc, char** argv)
 {
 	typedef double RealType;
 	typedef std::complex<RealType> ComplexType;
+	typedef yasw::SpaceConnectors<ComplexType> SpaceConnectorsType;
 	typedef yasw::EnergyCollinearFunction<ComplexType> EnergyCollinearFunctionType;
 	typedef yasw::EnergyNonCollinearFunction<ComplexType> EnergyNonCollinearFunctionType;
+	typedef EnergyNonCollinearFunctionType::VectorRealType VectorRealType;
 	typedef yasw::MinimizerParams<RealType> MinimizerParamsType;
 	typedef MinimizerParamsType::EnumAlgo EnumAlgo;
 
@@ -113,7 +116,8 @@ int main(int argc, char** argv)
 	RealType tol = 1e-4;
 	bool verbose = false;
 	RealType prec = 8;
-	PsimagLite::String afile("");
+	PsimagLite::String afile;
+	PsimagLite::String spinModulusFile;
 	SizeType fixedSpins = 1;
 	EnumAlgo algo = MinimizerParamsType::SIMPLEX;
 	SizeType saveEvery = 0;
@@ -122,7 +126,7 @@ int main(int argc, char** argv)
 	SizeType randomTries = 1;
 	SizeType pixel = 1;
 
-	while ((opt = getopt(argc, argv,"j:s:m:d:D:t:p:P:a:F:S:q:N:cvC")) != -1) {
+	while ((opt = getopt(argc, argv,"j:s:m:d:D:t:p:P:a:F:S:q:N:M:cvC")) != -1) {
 		switch (opt) {
 		case 'j':
 			jfile = optarg;
@@ -153,6 +157,9 @@ int main(int argc, char** argv)
 			break;
 		case 'P':
 			pixel = atoi(optarg);
+			break;
+		case 'M':
+			spinModulusFile = optarg;
 			break;
 		case 'a':
 			afile = optarg;
@@ -193,20 +200,24 @@ int main(int argc, char** argv)
 		if (verbose) std::cerr<<"q["<<i<<"]= "<<q[i]<<"\n";
 	}
 
+
+	SpaceConnectorsType spaceConnectors(jfile, pixel, verbose);
+	yasw::SpinModulus<VectorRealType> spinModulus(spinModulusFile,
+	                                              spaceConnectors.size());
 	if (collinear) {
-		main2<EnergyCollinearFunctionType>(jfile,
+		main2<EnergyCollinearFunctionType>(spaceConnectors,
 		                                   fixedSpins,
 		                                   q,
-		                                   pixel,
+		                                   spinModulus,
 		                                   afile,
 		                                   seed,
 		                                   randomTries,
 		                                   minParams);
 	} else {
-		main2<EnergyNonCollinearFunctionType>(jfile,
+		main2<EnergyNonCollinearFunctionType>(spaceConnectors,
 		                                      fixedSpins,
 		                                      q,
-		                                      pixel,
+		                                      spinModulus,
 		                                      afile,
 		                                      seed,
 		                                      randomTries,

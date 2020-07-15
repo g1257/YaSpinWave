@@ -17,17 +17,17 @@ class Heisenberg  : public Spf::ModelBase<Spf::Spin<typename EngineParamsType::R
         EngineParamsType,
         GeometryType> {
 
+public:
+
+	enum {OLDFIELDS,NEWFIELDS};
+
 	typedef typename EngineParamsType::IoInType IoInType;
 	typedef typename EngineParamsType::RealType RealType;
 	typedef PsimagLite::CrsMatrix<RealType> SparseMatrixType;
 	typedef std::complex<RealType> ComplexType;
 	typedef EnergyNonCollinearFunction<ComplexType> EnergyFunctionType;
 	typedef typename EnergyFunctionType::VectorRealType VectorRealType;
-
-public:
-
-	enum {OLDFIELDS,NEWFIELDS};
-
+	typedef typename EnergyFunctionType::SpaceConnectorsType SpaceConnectorsType;
 	typedef HeisenbergFields<RealType,GeometryType> DynVarsType;
 	typedef typename DynVarsType::SpinOperationsType SpinOperationsType;
 	typedef typename DynVarsType::SpinType SpinType;
@@ -35,11 +35,11 @@ public:
 
 	Heisenberg(const EngineParamsType& engineParams,
 	           const GeometryType& geometry,
-	           SizeType pixelSize,
-	           IoInType& io)
+	           const SpaceConnectorsType& spaceConnectors,
+	           const VectorRealType& spinModulus)
 	    : dynVars_(geometry.unitCellSize,engineParams),
 	      spinOperations_(geometry,engineParams),
-	      energy_(geometry.jfile, geometry.qvector, pixelSize, geometry.verbose)
+	      energy_(spaceConnectors, geometry.qvector, spinModulus)
 	{}
 
 	DynVarsType& dynVars() { return dynVars_; }

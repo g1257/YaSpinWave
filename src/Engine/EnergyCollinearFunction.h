@@ -87,11 +87,10 @@ public:
 	typedef  PsimagLite::Vector<double>::Type VectorRealType;
 	typedef Configuration ConfigurationType;
 
-	EnergyCollinearFunction(PsimagLite::String jfile,
+	EnergyCollinearFunction(const SpaceConnectorsType& spaceConnectors,
 	                        const VectorRealType&,
-	                        SizeType pixel,
-	                        bool verbose)
-	    : sc_(jfile, pixel, verbose)
+	                        const VectorRealType& moduli)
+	    : moduli_(moduli), sc_(spaceConnectors)
 	{}
 
 	template<typename DummyType>
@@ -144,18 +143,18 @@ private:
 		RealType sum = 0;
 		SizeType lda = size();
 		for (SizeType i = 0; i < lda; ++i) {
-			int si = Configuration::valueAt(ket, i);
+			const RealType si = Configuration::valueAt(ket, i)*moduli_[i];
 			for (SizeType j = 0; j < lda; ++j) {
-				sum += std::real(sc_(i,j,ind))*si*Configuration::valueAt(ket, j);
+				sum += std::real(sc_(i,j,ind))*si*Configuration::valueAt(ket, j)*moduli_[j];
 			}
 		}
 
 		return sum;
 	}
 
-	SpaceConnectorsType sc_;
+	const VectorRealType& moduli_;
+	const SpaceConnectorsType& sc_;
 };
-
 }
 
 #endif // ENERGY_C_FUNCTION_H
