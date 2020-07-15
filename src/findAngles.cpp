@@ -203,7 +203,7 @@ int main(int argc, char** argv)
 
 	SpaceConnectorsType spaceConnectors(jfile, pixel, verbose);
 	yasw::SpinModulus<VectorRealType> spinModulus(spinModulusFile,
-	                                              spaceConnectors.size());
+	                                              spaceConnectors.rows());
 	if (collinear) {
 		main2<EnergyCollinearFunctionType>(spaceConnectors,
 		                                   fixedSpins,
