@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
 
 	int opt = 0;
 	PsimagLite::String strUsage(argv[0]);
-	strUsage += " -f filename [-P pixelSize]";
+	strUsage += " -f filename [-P pixelSize] [-M modulusFile]";
 	yasw::InputCheckMonteCarlo inputCheck;
 	PsimagLite::String spinModulusFile;
 

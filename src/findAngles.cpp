@@ -15,11 +15,13 @@ void usage(const char *progName, const yasw::MinimizerParams<double>* minParams)
 	std::cerr<<"\t-v verbose\n";
 	std::cerr<<"\t-p precision (default is 8)\n";
 	std::cerr<<"\t-F spins (number of spins to fix, default is 1)\n";
+	std::cerr<<"\t-M modulusFile (modulus of each spin)\n";
 	std::cerr<<"\t-c Use collinear\n";
 	std::cerr<<"Below options only for non collinear\n";
 	std::cerr<<"\t-a anglesFile (initial angles for minimizer)\n";
 	std::cerr<<"\t-s seed (cannot be used with anglesFiles)\n";
 	std::cerr<<"\t-N tries (number of random tries; cannot be used with anglesFiles)\n";
+	std::cerr<<"\t-P pixelSize (use fat pixels with this pixelSize)\n";
 	std::cerr<<"\t-C Use conjugate gradient\n";
 	std::cerr<<"\t-m maxIter (max. iterations for minimizer)\n";
 	std::cerr<<"\t-d delta (x advancement for minimizer)\n";
