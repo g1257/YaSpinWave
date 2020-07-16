@@ -15,20 +15,25 @@ public:
 	SpinModulus(PsimagLite::String file, SizeType n)
 	{
 		if (file != "") {
-			InputCheck inputCheck;
-			PsimagLite::InputNg<InputCheck>::Writeable ioW(file, inputCheck);
-			PsimagLite::InputNg<InputCheck>::Readable io(ioW);
+			std::ifstream fin(file.c_str());
+			if (!fin || fin.bad() || !fin.good())
+				err("SpinModulus::ctor(): Could not open file " + file + "\n");
 
-			try {
-				io.read(moduli_, "SpinModulus");
-			} catch (std::exception&) {}
+			SizeType tmp = 0;
+			fin>>tmp;
+			if (tmp != n)
+				err("SpinModulus::ctor(): FATAL: Expecting spin moduli file " + file +
+				    " to have + " + ttos(n) + " spins " +
+				    "but found " + ttos(tmp) + " instead.\n");
+
+			moduli_.resize(n);
+			for (SizeType i = 0; i < tmp; ++i)
+				fin>>moduli_[i];
+
+			fin.close();
 		}
 
 		if (moduli_.size() == 0) moduli_.resize(n, 1.0);
-		if (moduli_.size() != n)
-			err("SpinModulus::ctor(): FATAL: Expecting spin moduli file " + file +
-			    " to have + " + ttos(n) + " spins " +
-			    "but found " + ttos(moduli_.size()) + " instead.\n");
 	}
 
 	const VectorRealType& operator()() const
