@@ -239,21 +239,22 @@ private:
 		const SizeType pixelSize = sc_.pixelSize();
 		ComplexType sum = 0;
 		for (SizeType j = 0; j < lda; ++j) {
+			const RealType modulus = moduli_[newIndex]*moduli_[j];
 			buildVector(vj, vdata, j);
 			if (pixelSize == 1)
-				sum += phase*std::real(sc_(newIndex,j,ind))*scalarProduct(vi,vj);
+				sum += phase*modulus*std::real(sc_(newIndex,j,ind))*scalarProduct(vi,vj);
 			else
-				sum += phase*energyThisPixel(pixelSize, newIndex, j, ind, vi, vj);
+				sum += phase*modulus*energyThisPixel(pixelSize, newIndex, j, ind, vi, vj);
 		}
 
 		for (SizeType i = 0; i < lda; ++i) {
 			buildVector(vi, vdata, i);
 			buildDeltaVector(vj, vdata, newIndex, isPhi);
-
+			const RealType modulus = moduli_[newIndex]*moduli_[i];
 			if (pixelSize == 1)
-				sum += phase*std::real(sc_(i,newIndex,ind))*scalarProduct(vi,vj);
+				sum += phase*modulus*std::real(sc_(i,newIndex,ind))*scalarProduct(vi,vj);
 			else
-				sum += phase*energyThisPixel(pixelSize, i, newIndex, ind, vi, vj);
+				sum += phase*modulus*energyThisPixel(pixelSize, i, newIndex, ind, vi, vj);
 		}
 
 		if (fabs(std::imag(sum)) > 1e-10) {
