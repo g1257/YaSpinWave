@@ -16,15 +16,18 @@ class InitConfig<ComplexOrRealType, true> {
 public:
 
 	typedef RandomGen<ComplexOrRealType> RandomGenType;
+	typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
 
 	InitConfig(PsimagLite::String afile,
 	           RandomGenType& randomGen,
 	           SizeType totalSpins,
 	           SizeType fixedSpins,
+	           RealType noise,
 	           bool verbose)
 	    : afile_(afile),
 	      totalSpins_(totalSpins),
 	      fixedSpins_(fixedSpins),
+	      noise_(noise),
 	      verbose_(verbose)
 	{
 		if (randomGen.needsRandom()) {
@@ -50,6 +53,7 @@ private:
 	PsimagLite::String afile_;
 	SizeType totalSpins_;
 	SizeType fixedSpins_;
+	RealType noise_;
     bool verbose_;
 };
 
@@ -67,11 +71,13 @@ public:
 	           RandomGenType& randomGen,
 	           SizeType totalSpins,
 	           SizeType fixedSpins,
+	           RealType noise,
 	           bool verbose)
 	    : afile_(afile),
 	      randomGen_(randomGen),
 	      totalSpins_(totalSpins),
 	      fixedSpins_(fixedSpins),
+	      noise_(noise),
 	      verbose_(verbose)
 	{}
 
@@ -105,8 +111,11 @@ public:
 			for (SizeType i = fixedSpins; i < angles.size(); ++i) {
 				SizeType twiceIndex = 2*(i - fixedSpins);
 				if (twiceIndex + 1 >= data.size()) break;
-				data[twiceIndex] = angles.theta(i);
-				data[twiceIndex+1] = angles.phi(i);
+				RealType noiseTheta = initConfig.randomGen_.random(initConfig.noise_);
+				data[twiceIndex] = angles.theta(i) + noiseTheta;
+
+				RealType noisePhi = initConfig.randomGen_.random(2*initConfig.noise_);
+				data[twiceIndex+1] = angles.phi(i) + noisePhi;
 			}
 
 			return;
@@ -133,6 +142,7 @@ private:
 	const RandomGenType& randomGen_;
 	SizeType totalSpins_;
 	SizeType fixedSpins_;
+	RealType noise_;
     bool verbose_;
 };
 }

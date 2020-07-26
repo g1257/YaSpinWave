@@ -19,6 +19,7 @@ void usage(const char *progName, const yasw::MinimizerParams<double>* minParams)
 	std::cerr<<"\t-c Use collinear\n";
 	std::cerr<<"Below options only for non collinear\n";
 	std::cerr<<"\t-a anglesFile (initial angles for minimizer)\n";
+	std::cerr<<"\t-R noise Adds noise to angleFile (only makes sense together with -a)\n";
 	std::cerr<<"\t-s seed (cannot be used with anglesFiles)\n";
 	std::cerr<<"\t-N tries (number of random tries; cannot be used with anglesFiles)\n";
 	std::cerr<<"\t-P pixelSize (use fat pixels with this pixelSize)\n";
@@ -40,6 +41,7 @@ void main2(const typename EnergyFunctionType::SpaceConnectorsType& spaceConnecto
            const typename EnergyFunctionType::VectorRealType& qvector,
            const yasw::SpinModulus<typename EnergyFunctionType::VectorRealType>& spinModulus,
            PsimagLite::String afile,
+           typename EnergyFunctionType::RealType noise,
            int seed,
            SizeType randomTries,
            const yasw::MinimizerParams<double>& minParams)
@@ -66,7 +68,12 @@ void main2(const typename EnergyFunctionType::SpaceConnectorsType& spaceConnecto
 	RealType minEnergy = 0;
 	ConfigurationType* savedConfig = 0;
 	for (SizeType i = 0; i < randomTries; ++i) {
-		InitConfigType initConfig(afile, randomGen, totalSpins, fixedSpins, minParams.verbose);
+		InitConfigType initConfig(afile,
+		                          randomGen,
+		                          totalSpins,
+		                          fixedSpins,
+		                          noise,
+		                          minParams.verbose);
 
 		ConfigurationType minConfig(totalSpins,
 		                            fixedSpins,
@@ -127,8 +134,9 @@ int main(int argc, char** argv)
 	PsimagLite::String delimiter = ",";
 	SizeType randomTries = 1;
 	SizeType pixel = 1;
+	RealType noise = 0.0;
 
-	while ((opt = getopt(argc, argv,"j:s:m:d:D:t:p:P:a:F:S:q:N:M:cvC")) != -1) {
+	while ((opt = getopt(argc, argv,"j:s:m:d:D:t:p:P:a:R:F:S:q:N:M:cvC")) != -1) {
 		switch (opt) {
 		case 'j':
 			jfile = optarg;
@@ -166,6 +174,9 @@ int main(int argc, char** argv)
 		case 'a':
 			afile = optarg;
 			break;
+		case 'R':
+			noise = atof(optarg);
+			break;
 		case 'F':
 			fixedSpins = atoi(optarg);
 			break;
@@ -196,6 +207,9 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
+	if (noise != 0.0 && afile == "")
+		err(PsimagLite::String(argv[0]) + ": -R noise make no sense without -a afile\n");
+
 	PsimagLite::Vector<RealType>::Type q(tokens.size(),0);
 	for (SizeType i = 0; i < q.size(); ++i) {
 		q[i] = atof(tokens[i].c_str());
@@ -212,6 +226,7 @@ int main(int argc, char** argv)
 		                                   q,
 		                                   spinModulus,
 		                                   afile,
+		                                   noise,
 		                                   seed,
 		                                   randomTries,
 		                                   minParams);
@@ -221,6 +236,7 @@ int main(int argc, char** argv)
 		                                      q,
 		                                      spinModulus,
 		                                      afile,
+		                                      noise,
 		                                      seed,
 		                                      randomTries,
 		                                      minParams);

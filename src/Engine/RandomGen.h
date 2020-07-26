@@ -40,6 +40,11 @@ public:
 		}
 	}
 
+	RealType random(RealType delta) const
+	{
+		return 2.0*rng_->operator()() * delta - delta;
+	}
+
 private:
 
 	RandomGen(const RandomGen&) = delete;
