@@ -57,9 +57,6 @@ void main2(const typename EnergyFunctionType::SpaceConnectorsType& spaceConnecto
 	typedef yasw::InitConfig<ComplexOrRealType, isCollinear> InitConfigType;
 	typedef typename EnergyFunctionType::ConfigurationType ConfigurationType;
 
-	if (seed == 0 && afile == "")
-		seed = 1234;
-
 	RandomGenType randomGen(seed);
 
 	if (randomTries > 1 && isCollinear)

@@ -88,12 +88,6 @@ public:
         const SizeType fixedSpins = initConfig.fixedSpins_;
         const bool verbose = initConfig.verbose_;
 
-		if (initConfig.randomGen_.needsRandom() && initConfig.afile_ != "") {
-			PsimagLite::String msg("Configuration: Providing both ");
-			msg += " seed and angles file is an error\n";
-			err(msg);
-		}
-
 		if (initConfig.afile_ != "") {
 			AnglesType angles(initConfig.afile_, verbose);
 			if (angles.size() != totalSpins) {
