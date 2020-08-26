@@ -64,6 +64,7 @@ void main2(const typename EnergyFunctionType::SpaceConnectorsType& spaceConnecto
 
 	RealType minEnergy = 0;
 	ConfigurationType* savedConfig = 0;
+	bool minEnergySet = false;
 	for (SizeType i = 0; i < randomTries; ++i) {
 		InitConfigType initConfig(afile,
 		                          randomGen,
@@ -77,10 +78,14 @@ void main2(const typename EnergyFunctionType::SpaceConnectorsType& spaceConnecto
 		                            minParams.verbose,
 		                            initConfig);
 
-		const RealType energyValue = energy.minimize(minConfig, minParams, i);
+		RealType energyValue = 1000;
+		int ret = energy.minimize(minConfig, energyValue, minParams, i);
+		if (ret > 0) continue;
 
-		if (i == 0 || energyValue < minEnergy) {
+		if (!minEnergySet || energyValue < minEnergy) {
 			minEnergy = energyValue;
+			minEnergySet = true;
+
 			if (!savedConfig)
 				savedConfig = new ConfigurationType(minConfig);
 			else

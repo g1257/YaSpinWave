@@ -82,9 +82,10 @@ public:
 	    : qvector_(qvector), moduli_(moduli), sc_(spaceConnectors), fixedSpins_(0)
 	{}
 
-	RealType minimize(ConfigurationType& config,
-	                  const MinimizerParams<RealType>& minParams,
-	                  SizeType tryIndex)
+	int minimize(ConfigurationType& config,
+	             RealType& energy,
+	             const MinimizerParams<RealType>& minParams,
+	             SizeType tryIndex)
 	{
 		fixedSpins_ = config.fixedSpins();
 
@@ -118,11 +119,12 @@ public:
 			                             minParams.saveEvery);
 		}
 
-		++used;
 
+		energy = operator ()(config());
+		int returnStatus = (used > 0) ? 0 : 1;
 		const bool printFooter = (tryIndex == 0 || minParams.verbose);
 
-		if (!printFooter) return operator ()(config()); // <--- EARLY EXIT HERE
+		if (!printFooter) return returnStatus; // <--- EARLY EXIT HERE
 
 		std::cerr<<"Minimizer params\n";
 		std::cerr<<minParams;
@@ -133,9 +135,10 @@ public:
 			std::cerr<<"NOT CONVERGED after ";
 		}
 
+		++used;
 		std::cerr<<used<<" iterations.\n";
 
-		return operator ()(config());
+		return returnStatus;
 	}
 
 	SizeType totalSpins() const { return sc_.rows(); }

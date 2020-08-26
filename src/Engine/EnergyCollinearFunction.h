@@ -94,18 +94,21 @@ public:
 	{}
 
 	template<typename DummyType>
-	RealType minimize(ConfigurationType& config, const DummyType&, SizeType) const
+	int minimize(ConfigurationType& config,
+	             RealType& energyMin,
+	             const DummyType&,
+	             SizeType) const
 	{
-		RealType minEnergy = 1e10;
+		energyMin = 1e10;
 		SizeType total = 1;
 		SizeType lda = size();
 		total <<= lda;
 		for (LongSizeType ket = 0; ket < total; ++ket) {
 			if (!config.isValid(ket)) continue;
 			RealType energy = this->operator()(ket);
-			if (energy < minEnergy) {
+			if (energy < energyMin) {
 				config() = ket; // save this config
-				minEnergy = energy;
+				energyMin = energy;
 			}
 		}
 
@@ -119,7 +122,7 @@ public:
 				std::cout<<M_PI<<" 0\n";
 		}
 
-		return minEnergy;
+		return 0;
 	}
 
 	SizeType totalSpins() const { return sc_.rows(); }
