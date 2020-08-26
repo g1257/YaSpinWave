@@ -64,7 +64,7 @@ void main2(const typename EnergyFunctionType::SpaceConnectorsType& spaceConnecto
 
 	RealType minEnergy = 0;
 	ConfigurationType* savedConfig = 0;
-	bool minEnergySet = false;
+	SizeType convergedConfigs = 0;
 	for (SizeType i = 0; i < randomTries; ++i) {
 		InitConfigType initConfig(afile,
 		                          randomGen,
@@ -82,9 +82,9 @@ void main2(const typename EnergyFunctionType::SpaceConnectorsType& spaceConnecto
 		int ret = energy.minimize(minConfig, energyValue, minParams, i);
 		if (ret > 0) continue;
 
-		if (!minEnergySet || energyValue < minEnergy) {
+		if (convergedConfigs == 0 || energyValue < minEnergy) {
 			minEnergy = energyValue;
-			minEnergySet = true;
+			++convergedConfigs;
 
 			if (!savedConfig)
 				savedConfig = new ConfigurationType(minConfig);
@@ -99,9 +99,13 @@ void main2(const typename EnergyFunctionType::SpaceConnectorsType& spaceConnecto
 		}
 	}
 
-	std::cerr<<"FINAL Energy at Minimum= "<<minEnergy<<"\n";
-	std::cout<<"Angles\n";
-	savedConfig->print(std::cout);
+	std::cerr<<"Number of configurations that converged="<<convergedConfigs<<"\n";
+	if (convergedConfigs > 0) {
+		std::cerr<<"FINAL Energy at Minimum= "<<minEnergy<<"\n";
+		std::cout<<"Angles\n";
+		savedConfig->print(std::cout);
+	}
+
 	delete savedConfig;
 	savedConfig = 0;
 }
