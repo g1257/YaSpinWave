@@ -29,10 +29,23 @@ void usage(const char *progName, const yasw::MinimizerParams<double>* minParams)
 	std::cerr<<"\t-D delta (advancement for gradient, ignored unless using -C)\n";
 	std::cerr<<"\t-t tolerance (y tolerance for minimizer)\n";
 	std::cerr<<"\t-S n (save work configuration each n steps)\n";
+	std::cerr<<"\t-T tolerance (print configs closer than tolerance to lowest)\n";
 	std::cerr<<"\t-q q0,q1,q2 (q values to use in energy function)\n";
 	if (!minParams) return;
 	std::cerr<<"Defaults are\n";
 	std::cerr<<(*minParams);
+}
+
+template<typename VectorRealType>
+SizeType findEnergiesLowerThan(typename VectorRealType::value_type tolerance,
+                               const VectorRealType& energies,
+                               typename VectorRealType::value_type lowest)
+{
+	const SizeType n = energies.size();
+	SizeType counter = 0;
+	for (SizeType i = 0; i < n; ++i)
+		if (fabs(energies[i] - lowest) < tolerance) ++counter;
+	return counter;
 }
 
 template<typename EnergyFunctionType>
@@ -44,7 +57,8 @@ void main2(const typename EnergyFunctionType::SpaceConnectorsType& spaceConnecto
            typename EnergyFunctionType::RealType noise,
            int seed,
            SizeType randomTries,
-           const yasw::MinimizerParams<double>& minParams)
+           const yasw::MinimizerParams<double>& minParams,
+           typename EnergyFunctionType::RealType tolerance)
 {
 	EnergyFunctionType energy(spaceConnectors, qvector, spinModulus());
 	SizeType totalSpins = energy.totalSpins();
@@ -56,6 +70,7 @@ void main2(const typename EnergyFunctionType::SpaceConnectorsType& spaceConnecto
 		  EnergyFunctionType>::True};
 	typedef yasw::InitConfig<ComplexOrRealType, isCollinear> InitConfigType;
 	typedef typename EnergyFunctionType::ConfigurationType ConfigurationType;
+	typedef typename EnergyCollinearFunctionType::VectorRealType VectorRealType;
 
 	RandomGenType randomGen(seed);
 
@@ -65,6 +80,7 @@ void main2(const typename EnergyFunctionType::SpaceConnectorsType& spaceConnecto
 	RealType minEnergy = 0;
 	ConfigurationType* savedConfig = 0;
 	SizeType convergedConfigs = 0;
+	VectorRealType energies(randomTries);
 	for (SizeType i = 0; i < randomTries; ++i) {
 		InitConfigType initConfig(afile,
 		                          randomGen,
@@ -84,13 +100,16 @@ void main2(const typename EnergyFunctionType::SpaceConnectorsType& spaceConnecto
 
 		if (convergedConfigs == 0 || energyValue < minEnergy) {
 			minEnergy = energyValue;
-			++convergedConfigs;
 
 			if (!savedConfig)
 				savedConfig = new ConfigurationType(minConfig);
 			else
 				*savedConfig = minConfig;
 		}
+
+		assert(convergedConfigs < energies.size());
+		energies[convergedConfigs] = energyValue;
+		++convergedConfigs;
 
 		if (!isCollinear && minParams.verbose) {
 			std::cerr<<"Energy at Minimum= "<<energyValue<<"\n";
@@ -99,7 +118,17 @@ void main2(const typename EnergyFunctionType::SpaceConnectorsType& spaceConnecto
 		}
 	}
 
+	energies.resize(convergedConfigs);
 	std::cerr<<"Number of configurations that converged="<<convergedConfigs<<"\n";
+
+	if (tolerance > 0) {
+
+		const SizeType xconfigs = findEnergiesLowerThan(tolerance, energies, minEnergy);
+
+		std::cerr<<"There were "<<xconfigs<<" configurations with energy";
+		std::cerr<<" closer than "<<tolerance<<" to the lowest energy\n";
+	}
+
 	if (convergedConfigs > 0) {
 		std::cerr<<"FINAL Energy at Minimum= "<<minEnergy<<"\n";
 		std::cout<<"Angles\n";
@@ -141,8 +170,9 @@ int main(int argc, char** argv)
 	SizeType randomTries = 1;
 	SizeType pixel = 1;
 	RealType noise = 0.0;
+	RealType tolerance = 0.0;
 
-	while ((opt = getopt(argc, argv,"j:s:m:d:D:t:p:P:a:R:F:S:q:N:M:cvC")) != -1) {
+	while ((opt = getopt(argc, argv,"j:s:m:d:D:t:p:P:a:R:F:S:q:N:M:T:cvC")) != -1) {
 		switch (opt) {
 		case 'j':
 			jfile = optarg;
@@ -195,6 +225,9 @@ int main(int argc, char** argv)
 		case 'S':
 			saveEvery = atoi(optarg);
 			break;
+		case 'T':
+			tolerance = atof(optarg);
+			break;
 		case 'q':
 			PsimagLite::split(tokens, optarg, delimiter);
 			break;
@@ -235,7 +268,8 @@ int main(int argc, char** argv)
 		                                   noise,
 		                                   seed,
 		                                   randomTries,
-		                                   minParams);
+		                                   minParams,
+		                                   tolerance);
 	} else {
 		main2<EnergyNonCollinearFunctionType>(spaceConnectors,
 		                                      fixedSpins,
@@ -245,7 +279,8 @@ int main(int argc, char** argv)
 		                                      noise,
 		                                      seed,
 		                                      randomTries,
-		                                      minParams);
+		                                      minParams,
+		                                      tolerance);
 	}
 }
 
