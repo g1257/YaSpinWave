@@ -18,9 +18,10 @@ public:
 
 	SpinWave(PsimagLite::String jfile,
 	         PsimagLite::String afile,
+	         PsimagLite::String spinModulusFile,
 	         SizeType pixelSize,
 	         bool verbose)
-	    : verbose_(verbose), matrixSpace_(jfile, afile, pixelSize, verbose)
+	    : verbose_(verbose), matrixSpace_(jfile, afile, spinModulusFile, pixelSize, verbose)
 	{}
 
 	void printSpaceMatrices(std::ostream& os)

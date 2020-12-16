@@ -6,7 +6,8 @@
 
 void usage(const char *progName)
 {
-	std::cerr<<"Usage: "<<progName<<" [options] -j file  -a file [-P pixelSize=1] \n";
+	std::cerr<<"Usage: "<<progName<<" [options] -j file  -a file [-M modulusFile] ";
+	std::cerr<<" [-P pixelSize=1] \n";
 	std::cerr<<"Options\n";
 	std::cerr<<"\t-v Verbose\n";
 	std::cerr<<"\t-c Use algorithm for collinear\n";
@@ -16,11 +17,12 @@ void usage(const char *progName)
 template<typename MatrixSpaceType>
 void main2(PsimagLite::String jfile,
            PsimagLite::String afile,
+           PsimagLite::String spinModulusFile,
            SizeType pixelSize,
            bool verbose,
            bool hOnly)
 {
-	yasw::SpinWave<MatrixSpaceType> sw(jfile, afile, pixelSize, verbose);
+	yasw::SpinWave<MatrixSpaceType> sw(jfile, afile, spinModulusFile, pixelSize, verbose);
 
 	if (hOnly) {
 		sw.printSpaceMatrices(std::cout);
@@ -45,8 +47,9 @@ int main(int argc, char** argv)
 	bool hOnly = false;
 	bool verbose = false;
 	SizeType pixel = 1;
+	PsimagLite::String spinModulusFile;
 
-	while ((opt = getopt(argc, argv,"j:a:P:cHv")) != -1) {
+	while ((opt = getopt(argc, argv,"j:a:M:P:cHv")) != -1) {
 		switch (opt) {
 		case 'j':
 			jfile = optarg;
@@ -59,6 +62,9 @@ int main(int argc, char** argv)
 			break;
 		case 'H':
 			hOnly = true;
+			break;
+		case 'M':
+			spinModulusFile = optarg;
 			break;
 		case 'P':
 			pixel = atoi(optarg);
@@ -78,9 +84,9 @@ int main(int argc, char** argv)
 	}
 
 	if (collinear) {
-		main2<MatrixSpaceCollinearType>(jfile, afile, pixel, verbose, hOnly);
+		main2<MatrixSpaceCollinearType>(jfile, afile, spinModulusFile, pixel, verbose, hOnly);
 	} else {
-		main2<MatrixSpaceNonCollinearType>(jfile, afile, pixel, verbose, hOnly);
+		main2<MatrixSpaceNonCollinearType>(jfile, afile, spinModulusFile, pixel, verbose, hOnly);
 	}
 }
 

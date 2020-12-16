@@ -24,9 +24,10 @@ public:
 
 	MatrixSpaceNonCollinear(PsimagLite::String jfile,
 	                        PsimagLite::String afile,
+	                        PsimagLite::String spinModulusFile,
 	                        SizeType pixelSize,
 	                        bool verbose)
-	    : common_(jfile, afile, pixelSize, verbose),
+	    : common_(jfile, afile, spinModulusFile, pixelSize, verbose),
 	      data_(common_.size()),
 	      u_(common_.rows())
 	{
@@ -60,21 +61,117 @@ private:
 
 	void fillThisMatrix(MatrixComplexOrRealType& m, SizeType ind) const
 	{
+		static const ComplexOrRealType sqrtMinusOne = ComplexOrRealType(0, 1);
+
 		SizeType lda = common_.rows();
 		for (SizeType i = 0; i < lda; ++i) {
+
+			const RealType theta2 = common_.theta(i);
+			const RealType phi2 = common_.phi(i);
+			const RealType s2 = common_.modulus(i);
+
 			for (SizeType j = 0; j < lda; ++j) {
 
-				ComplexOrRealType tmp =  aplus(i,j,ind);
-				if (std::norm(tmp)<1e-10) tmp = 0;
-				m(i,j) = m(j+lda,i+lda)  = tmp;
+				const RealType theta1 = common_.theta(j);
+				const RealType phi1 = common_.phi(j);
+				const RealType s1 = common_.modulus(j);
 
-				tmp =  bplus(i,j,ind);
-				if (std::norm(tmp)<1e-10) tmp = 0;
-				m(i,j+lda) = tmp;
-				m(i+lda,j) = std::conj(tmp);
+				//const ComplexOrRealType a2daga1,a2a1,a1daga1,a2daga1dag,a2a1dag,adaga;
 
-				if (common_.isCentralCell(ind) && i == j)
-					m(i,i) = m(i+lda,i+lda) = diagonal(i);
+				const ComplexOrRealType Axx = common_.J(3*i + 0, 3*j + 0, ind);
+				const ComplexOrRealType Axy = common_.J(3*i + 0, 3*j + 1, ind);
+				const ComplexOrRealType Axz = common_.J(3*i + 0, 3*j + 2, ind);
+				const ComplexOrRealType Ayx = common_.J(3*i + 1, 3*j + 0, ind);
+				const ComplexOrRealType Ayy = common_.J(3*i + 1, 3*j + 1, ind);
+				const ComplexOrRealType Ayz = common_.J(3*i + 1, 3*j + 2, ind);
+				const ComplexOrRealType Azx = common_.J(3*i + 2, 3*j + 0, ind);
+				const ComplexOrRealType Azy = common_.J(3*i + 2, 3*j + 1, ind);
+				const ComplexOrRealType Azz = common_.J(3*i + 2, 3*j + 2, ind);
+
+				const ComplexOrRealType a2daga1 = (sqrt(s2)*cos(phi2)*cos(theta2)/sqrt(2) -
+				                                   sqrtMinusOne*sqrt(s2)*sin(phi2)/sqrt(2))*
+				        (-sqrtMinusOne*Ayx*sqrt(s1)*cos(phi1)/sqrt(2) +
+				         Axx*sqrt(s1)*cos(phi1)*cos(theta1)/sqrt(2) +
+				         sqrtMinusOne*Axx*sqrt(s1)*sin(phi1)/sqrt(2) +
+				         Ayx*sqrt(s1)*cos(theta1)*sin(phi1)/sqrt(2) -
+				         Azx*sqrt(s1)*sin(theta1)/sqrt(2)) +
+				        (sqrtMinusOne*sqrt(s2)*cos(phi2)/sqrt(2) +
+				         sqrt(s2)*cos(theta2)*sin(phi2)/sqrt(2))*
+				        (-sqrtMinusOne*Ayy*sqrt(s1)*cos(phi1)/sqrt(2) +
+				         Axy*sqrt(s1)*cos(phi1)*cos(theta1)/sqrt(2) +
+				         sqrtMinusOne*Axy*sqrt(s1)*sin(phi1)/sqrt(2) +
+				         Ayy*sqrt(s1)*cos(theta1)*sin(phi1)/sqrt(2) -
+				         Azy*sqrt(s1)*sin(theta1)/sqrt(2)) +
+				        0.5*sqrtMinusOne*Ayz*sqrt(s1)*sqrt(s2)*cos(phi1)*sin(theta2) -
+				        Axz*sqrt(s1)*sqrt(s2)*cos(phi1)*cos(theta1)*sin(theta2)/2. -
+				        0.5*sqrtMinusOne*Axz*sqrt(s1)*sqrt(s2)*sin(phi1)*sin(theta2) -
+				        Ayz*sqrt(s1)*sqrt(s2)*cos(theta1)*sin(phi1)*sin(theta2)/2. +
+				        Azz*sqrt(s1)*sqrt(s2)*sin(theta1)*sin(theta2)/2.;
+
+				const ComplexOrRealType a2a1= (sqrt(s2)*cos(phi2)*cos(theta2)/sqrt(2) +
+				                               sqrtMinusOne*sqrt(s2)*sin(phi2)/sqrt(2))*
+				        (-sqrtMinusOne*Ayx*sqrt(s1)*cos(phi1)/sqrt(2) +
+				         Axx*sqrt(s1)*cos(phi1)*cos(theta1)/sqrt(2) +
+				         sqrtMinusOne*Axx*sqrt(s1)*sin(phi1)/sqrt(2) +
+				         Ayx*sqrt(s1)*cos(theta1)*sin(phi1)/sqrt(2) -
+				         Azx*sqrt(s1)*sin(theta1)/sqrt(2)) +
+				        (-sqrtMinusOne*sqrt(s2)*cos(phi2)/sqrt(2) +
+				         sqrt(s2)*cos(theta2)*sin(phi2)/sqrt(2))*
+				        (-sqrtMinusOne*Ayy*sqrt(s1)*cos(phi1)/sqrt(2) +
+				         Axy*sqrt(s1)*cos(phi1)*cos(theta1)/sqrt(2) +
+				         sqrtMinusOne*Axy*sqrt(s1)*sin(phi1)/sqrt(2) +
+				         Ayy*sqrt(s1)*cos(theta1)*sin(phi1)/sqrt(2) -
+				         Azy*sqrt(s1)*sin(theta1)/sqrt(2)) +
+				        0.5*sqrtMinusOne*Ayz*sqrt(s1)*sqrt(s2)*cos(phi1)*sin(theta2) -
+				        Axz*sqrt(s1)*sqrt(s2)*cos(phi1)*cos(theta1)*sin(theta2)/2. -
+				        0.5*sqrtMinusOne*Axz*sqrt(s1)*sqrt(s2)*sin(phi1)*sin(theta2) -
+				        Ayz*sqrt(s1)*sqrt(s2)*cos(theta1)*sin(phi1)*sin(theta2)/2. +
+				        Azz*sqrt(s1)*sqrt(s2)*sin(theta1)*sin(theta2)/2.;
+
+//				const ComplexOrRealType  a1daga1 = s2*cos(theta2)*(-Azz*cos(theta1) -
+//				                                                   Axz*cos(phi1)*sin(theta1) -
+//				                                                   Ayz*sin(phi1)*sin(theta1)) +
+//				        s2*cos(phi2)*(-Azx*cos(theta1) -
+//				                      Axx*cos(phi1)*sin(theta1) -
+//				                      Ayx*sin(phi1)*sin(theta1))*sin(theta2) +
+//				        s2*sin(phi2)*(-Azy*cos(theta1) -
+//				                      Axy*cos(phi1)*sin(theta1) -
+//				                      Ayy*sin(phi1)*sin(theta1))*sin(theta2);
+
+				const ComplexOrRealType adaga = Ayy*s1*pow(cos(phi1),2) -
+				        2.0*Azz*s1*pow(cos(theta1),2) +
+				        Axx*s1*pow(cos(phi1),2)*pow(cos(theta1),2) -
+				        Axy*s1*cos(phi1)*sin(phi1) -
+				        Ayx*s1*cos(phi1)*sin(phi1) +
+				        Axy*s1*cos(phi1)*pow(cos(theta1),2)*sin(phi1) +
+				        Ayx*s1*cos(phi1)*pow(cos(theta1),2)*sin(phi1) +
+				        Axx*s1*pow(sin(phi1),2) +
+				        Ayy*s1*pow(cos(theta1),2)*pow(sin(phi1),2) -
+				        3.0*Axz*s1*cos(phi1)*cos(theta1)*sin(theta1) -
+				        3.0*Azx*s1*cos(phi1)*cos(theta1)*sin(theta1) -
+				        3.0*Ayz*s1*cos(theta1)*sin(phi1)*sin(theta1) -
+				        3.0*Azy*s1*cos(theta1)*sin(phi1)*sin(theta1) +
+				        Azz*s1*pow(sin(theta1),2) -
+				        2.0*Axx*s1*pow(cos(phi1),2)*pow(sin(theta1),2) -
+				        2.0*Axy*s1*cos(phi1)*sin(phi1)*pow(sin(theta1),2) -
+				        2.0*Ayx*s1*cos(phi1)*sin(phi1)*pow(sin(theta1),2) -
+				        2.0*Ayy*s1*pow(sin(phi1),2)*pow(sin(theta1),2);
+
+				const ComplexOrRealType a2daga1dag = PsimagLite::conj(a2a1);
+
+				const ComplexOrRealType a2a1dag = PsimagLite::conj(a2daga1);
+
+				if (common_.isCentralCell(ind) && i == j) {
+					m(i, i) += 0.5*adaga;
+					m(i + lda, i) += a2a1;
+					m(i, i + lda) += a2daga1dag;
+					m(i + lda, i + lda) += 0.5*adaga;
+				} else {
+					m(i, j) += 0.5*a2daga1;
+					m(i + lda, j) += 0.5*a2a1;
+					m(i, j + lda) += 0.5*a2daga1dag;
+					m(j+lda,i+lda)  += 0.5*a2a1dag;
+				}
 			}
 		}
 	}

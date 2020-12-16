@@ -45,7 +45,7 @@ public:
 		if (!isHermitian(a,true)) {
 			PsimagLite::String msg("MatrixSpaceNonCollinear: ");
 			msg += "Hamiltonian matrix is not Hermitian\n";
-			throw PsimagLite::RuntimeError(msg);
+//			throw PsimagLite::RuntimeError(msg);
 		}
 
 		multiplyByG(a);

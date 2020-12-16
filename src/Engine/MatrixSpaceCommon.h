@@ -2,6 +2,7 @@
 #define MATRIXSPACE_COMMON_H
 #include "SpaceConnectors.h"
 #include "Angles.h"
+#include "SpinModulus.h"
 
 namespace yasw {
 
@@ -17,12 +18,16 @@ public:
 	MatrixComplexOrRealType;
 	typedef typename SpaceConnectorsType::VectorComplexOrRealMatrixType
 	VectorComplexOrRealMatrixType;
+	typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
 
 	MatrixSpaceCommon(PsimagLite::String jfile,
 	                  PsimagLite::String afile,
+	                  PsimagLite::String spinModulusFile,
 	                  SizeType pixelSize,
 	                  bool verbose)
-	    : sc_(jfile, pixelSize, verbose), a_(afile, verbose)
+	    : sc_(jfile, pixelSize, verbose),
+	      a_(afile, verbose),
+	      spinModulus_(spinModulusFile, sc_.rows())
 	{}
 
 	SizeType size() const { return sc_.size(); }
@@ -47,10 +52,17 @@ public:
 
 	bool isCentralCell(SizeType ind) const { return sc_.isCentralCell(ind); }
 
+	RealType modulus(SizeType x) const
+	{
+		assert( x < spinModulus_().size());
+		return spinModulus_()[x];
+	}
+
 private:
 
 	SpaceConnectorsType sc_;
 	AnglesType a_;
+	SpinModulus<VectorRealType> spinModulus_;
 }; // MatrixSpaceCommon
 
 } // namespace yasw

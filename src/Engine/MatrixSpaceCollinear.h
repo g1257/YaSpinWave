@@ -21,10 +21,11 @@ public:
 
 	MatrixSpaceCollinear(PsimagLite::String jfile,
 	                     PsimagLite::String afile,
+	                     PsimagLite::String spinModulusFile,
 	                     SizeType pixelSize,
 	                     bool verbose)
 	    : verbose_(verbose),
-	      common_(jfile, afile, pixelSize, verbose),
+	      common_(jfile, afile, spinModulusFile, pixelSize, verbose),
 	      data_(common_.size())
 	{
 		SizeType lda = common_.rows();
