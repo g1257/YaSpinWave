@@ -54,7 +54,7 @@ public:
 		os<<matrixSpace_.size()<<" "<<matrixSpace_(0).n_row()<<"\n";
 		for (SizeType i = 0; i < matrixSpace_.size(); ++i) {
 			os<<matrixSpace_.nvector(i)<<"\n";
-			printMatrix(os,matrixSpace_(i),-1);
+			printMatrix(os,matrixSpace_(i), 1);
 		}
 	}
 

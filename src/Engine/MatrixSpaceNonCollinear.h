@@ -150,34 +150,34 @@ private:
 				//				                      Axy*cos(phi1)*sin(theta1) -
 				//				                      Ayy*sin(phi1)*sin(theta1))*sin(theta2);
 
-				const ComplexOrRealType adaga = Ayy*s1*pow(cos(phi1),2) -
-				        2.0*Azz*s1*pow(cos(theta1),2) +
-				        Axx*s1*pow(cos(phi1),2)*pow(cos(theta1),2) -
-				        Axy*s1*cos(phi1)*sin(phi1) -
-				        Ayx*s1*cos(phi1)*sin(phi1) +
-				        Axy*s1*cos(phi1)*pow(cos(theta1),2)*sin(phi1) +
-				        Ayx*s1*cos(phi1)*pow(cos(theta1),2)*sin(phi1) +
-				        Axx*s1*pow(sin(phi1),2) +
-				        Ayy*s1*pow(cos(theta1),2)*pow(sin(phi1),2) -
-				        3.0*Axz*s1*cos(phi1)*cos(theta1)*sin(theta1) -
-				        3.0*Azx*s1*cos(phi1)*cos(theta1)*sin(theta1) -
-				        3.0*Ayz*s1*cos(theta1)*sin(phi1)*sin(theta1) -
-				        3.0*Azy*s1*cos(theta1)*sin(phi1)*sin(theta1) +
-				        Azz*s1*pow(sin(theta1),2) -
-				        2.0*Axx*s1*pow(cos(phi1),2)*pow(sin(theta1),2) -
-				        2.0*Axy*s1*cos(phi1)*sin(phi1)*pow(sin(theta1),2) -
-				        2.0*Ayx*s1*cos(phi1)*sin(phi1)*pow(sin(theta1),2) -
-				        2.0*Ayy*s1*pow(sin(phi1),2)*pow(sin(theta1),2);
+//				const ComplexOrRealType adaga = Ayy*s1*pow(cos(phi1),2) -
+//				        2.0*Azz*s1*pow(cos(theta1),2) +
+//				        Axx*s1*pow(cos(phi1),2)*pow(cos(theta1),2) -
+//				        Axy*s1*cos(phi1)*sin(phi1) -
+//				        Ayx*s1*cos(phi1)*sin(phi1) +
+//				        Axy*s1*cos(phi1)*pow(cos(theta1),2)*sin(phi1) +
+//				        Ayx*s1*cos(phi1)*pow(cos(theta1),2)*sin(phi1) +
+//				        Axx*s1*pow(sin(phi1),2) +
+//				        Ayy*s1*pow(cos(theta1),2)*pow(sin(phi1),2) -
+//				        3.0*Axz*s1*cos(phi1)*cos(theta1)*sin(theta1) -
+//				        3.0*Azx*s1*cos(phi1)*cos(theta1)*sin(theta1) -
+//				        3.0*Ayz*s1*cos(theta1)*sin(phi1)*sin(theta1) -
+//				        3.0*Azy*s1*cos(theta1)*sin(phi1)*sin(theta1) +
+//				        Azz*s1*pow(sin(theta1),2) -
+//				        2.0*Axx*s1*pow(cos(phi1),2)*pow(sin(theta1),2) -
+//				        2.0*Axy*s1*cos(phi1)*sin(phi1)*pow(sin(theta1),2) -
+//				        2.0*Ayx*s1*cos(phi1)*sin(phi1)*pow(sin(theta1),2) -
+//				        2.0*Ayy*s1*pow(sin(phi1),2)*pow(sin(theta1),2);
 
 				const ComplexOrRealType a2daga1dag = PsimagLite::conj(a2a1);
 
 				const ComplexOrRealType a2a1dag = PsimagLite::conj(a2daga1);
 
 				if (common_.isCentralCell(ind) && i == j) {
-					m(i, i) += 0.5*adaga;
-					m(i + lda, i) += a2a1;
-					m(i, i + lda) += a2daga1dag;
-					m(i + lda, i + lda) += 0.5*adaga;
+					m(i, i) += -100; //0.5*adaga;
+					m(i + lda, i) += -100; //a2a1;
+					m(i, i + lda) += -100; //a2daga1dag;
+					m(i + lda, i + lda) += -100; //0.5*adaga;
 				} else {
 					m(i, j) += 0.5*a2daga1;
 					m(i + lda, j) += 0.5*a2a1;
