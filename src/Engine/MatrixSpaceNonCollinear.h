@@ -21,6 +21,7 @@ public:
 	MatrixComplexOrRealType;
 	typedef typename SpaceConnectorsType::VectorComplexOrRealMatrixType
 	VectorComplexOrRealMatrixType;
+	typedef typename PsimagLite::Vector<ComplexOrRealType>::Type VectorType;
 
 	MatrixSpaceNonCollinear(PsimagLite::String jfile,
 	                        PsimagLite::String afile,
@@ -37,10 +38,24 @@ public:
 			fillUmatrix(i);
 		}
 
+		VectorType centralCellAcc(2*lda);
+		int centralCellIndex = -1;
 		for (SizeType i = 0; i < common_.size(); ++i) {
 			MatrixComplexOrRealType m(2*lda,2*lda);
-			fillThisMatrix(m,i);
+			fillThisMatrix(m, centralCellAcc, i);
 			data_[i] = m;
+			if (common_.isCentralCell(i))
+			        centralCellIndex = i;
+		}
+
+		if (centralCellIndex < 0)
+			err("Could not find central cell index\n");
+
+		assert(centralCellIndex >= 0);
+		assert(static_cast<SizeType>(centralCellIndex) < data_.size());
+		for (SizeType i = 0; i < lda; ++i) {
+			data_[centralCellIndex](i, i) += centralCellAcc[i];
+			data_[centralCellIndex](i + lda, i + lda) += centralCellAcc[i + lda];
 		}
 	}
 
@@ -59,21 +74,25 @@ public:
 
 private:
 
-	void fillThisMatrix(MatrixComplexOrRealType& m, SizeType ind) const
+	void fillThisMatrix(MatrixComplexOrRealType& m,
+	                    VectorType& centralCellAcc,
+	                    SizeType ind) const
 	{
 		switch (common_.pixelSize()) {
 		case 1:
-			fillThisMatrixPixel1(m, ind);
+			fillThisMatrixPixel1(m, centralCellAcc, ind);
 			break;
 		case 3:
-			fillThisMatrixPixel3(m, ind);
+			fillThisMatrixPixel3(m, centralCellAcc, ind);
 			break;
 		default:
 			err("fillThisMatrix: pixelSize must be one or three\n");
 		}
 	}
 
-	void fillThisMatrixPixel3(MatrixComplexOrRealType& m, SizeType ind) const
+	void fillThisMatrixPixel3(MatrixComplexOrRealType& m,
+	                          VectorType& centralCellAcc,
+	                          SizeType ind) const
 	{
 		static const ComplexOrRealType sqrtMinusOne = ComplexOrRealType(0, 1);
 
@@ -140,55 +159,60 @@ private:
 				        Ayz*sqrt(s1)*sqrt(s2)*cos(theta1)*sin(phi1)*sin(theta2)/2. +
 				        Azz*sqrt(s1)*sqrt(s2)*sin(theta1)*sin(theta2)/2.;
 
-				//				const ComplexOrRealType  a1daga1 = s2*cos(theta2)*(-Azz*cos(theta1) -
-				//				                                                   Axz*cos(phi1)*sin(theta1) -
-				//				                                                   Ayz*sin(phi1)*sin(theta1)) +
-				//				        s2*cos(phi2)*(-Azx*cos(theta1) -
-				//				                      Axx*cos(phi1)*sin(theta1) -
-				//				                      Ayx*sin(phi1)*sin(theta1))*sin(theta2) +
-				//				        s2*sin(phi2)*(-Azy*cos(theta1) -
-				//				                      Axy*cos(phi1)*sin(theta1) -
-				//				                      Ayy*sin(phi1)*sin(theta1))*sin(theta2);
+				const ComplexOrRealType  a1daga1 = s2*cos(theta2)*(-Azz*cos(theta1) -
+				                                                   Axz*cos(phi1)*sin(theta1) -
+				                                                   Ayz*sin(phi1)*sin(theta1)) +
+				        s2*cos(phi2)*(-Azx*cos(theta1) -
+				                      Axx*cos(phi1)*sin(theta1) -
+				                      Ayx*sin(phi1)*sin(theta1))*sin(theta2) +
+				        s2*sin(phi2)*(-Azy*cos(theta1) -
+				                      Axy*cos(phi1)*sin(theta1) -
+				                      Ayy*sin(phi1)*sin(theta1))*sin(theta2);
 
-//				const ComplexOrRealType adaga = Ayy*s1*pow(cos(phi1),2) -
-//				        2.0*Azz*s1*pow(cos(theta1),2) +
-//				        Axx*s1*pow(cos(phi1),2)*pow(cos(theta1),2) -
-//				        Axy*s1*cos(phi1)*sin(phi1) -
-//				        Ayx*s1*cos(phi1)*sin(phi1) +
-//				        Axy*s1*cos(phi1)*pow(cos(theta1),2)*sin(phi1) +
-//				        Ayx*s1*cos(phi1)*pow(cos(theta1),2)*sin(phi1) +
-//				        Axx*s1*pow(sin(phi1),2) +
-//				        Ayy*s1*pow(cos(theta1),2)*pow(sin(phi1),2) -
-//				        3.0*Axz*s1*cos(phi1)*cos(theta1)*sin(theta1) -
-//				        3.0*Azx*s1*cos(phi1)*cos(theta1)*sin(theta1) -
-//				        3.0*Ayz*s1*cos(theta1)*sin(phi1)*sin(theta1) -
-//				        3.0*Azy*s1*cos(theta1)*sin(phi1)*sin(theta1) +
-//				        Azz*s1*pow(sin(theta1),2) -
-//				        2.0*Axx*s1*pow(cos(phi1),2)*pow(sin(theta1),2) -
-//				        2.0*Axy*s1*cos(phi1)*sin(phi1)*pow(sin(theta1),2) -
-//				        2.0*Ayx*s1*cos(phi1)*sin(phi1)*pow(sin(theta1),2) -
-//				        2.0*Ayy*s1*pow(sin(phi1),2)*pow(sin(theta1),2);
+				const ComplexOrRealType adaga = Ayy*s1*pow(cos(phi1),2) -
+				        2.0*Azz*s1*pow(cos(theta1),2) +
+				        Axx*s1*pow(cos(phi1),2)*pow(cos(theta1),2) -
+				        Axy*s1*cos(phi1)*sin(phi1) -
+				        Ayx*s1*cos(phi1)*sin(phi1) +
+				        Axy*s1*cos(phi1)*pow(cos(theta1),2)*sin(phi1) +
+				        Ayx*s1*cos(phi1)*pow(cos(theta1),2)*sin(phi1) +
+				        Axx*s1*pow(sin(phi1),2) +
+				        Ayy*s1*pow(cos(theta1),2)*pow(sin(phi1),2) -
+				        3.0*Axz*s1*cos(phi1)*cos(theta1)*sin(theta1) -
+				        3.0*Azx*s1*cos(phi1)*cos(theta1)*sin(theta1) -
+				        3.0*Ayz*s1*cos(theta1)*sin(phi1)*sin(theta1) -
+				        3.0*Azy*s1*cos(theta1)*sin(phi1)*sin(theta1) +
+				        Azz*s1*pow(sin(theta1),2) -
+				        2.0*Axx*s1*pow(cos(phi1),2)*pow(sin(theta1),2) -
+				        2.0*Axy*s1*cos(phi1)*sin(phi1)*pow(sin(theta1),2) -
+				        2.0*Ayx*s1*cos(phi1)*sin(phi1)*pow(sin(theta1),2) -
+				        2.0*Ayy*s1*pow(sin(phi1),2)*pow(sin(theta1),2);
 
 				const ComplexOrRealType a2daga1dag = PsimagLite::conj(a2a1);
 
 				const ComplexOrRealType a2a1dag = PsimagLite::conj(a2daga1);
 
 				if (common_.isCentralCell(ind) && i == j) {
-					m(i, i) += -100; //0.5*adaga;
-					m(i + lda, i) += -100; //a2a1;
-					m(i, i + lda) += -100; //a2daga1dag;
-					m(i + lda, i + lda) += -100; //0.5*adaga;
+					m(i, i) += 0.5*adaga;
+					m(i + lda, i) += a2a1;
+					m(i, i + lda) += a2daga1dag;
+					m(i + lda, i + lda) += 0.5*adaga;
 				} else {
 					m(i, j) += 0.5*a2daga1;
 					m(i + lda, j) += 0.5*a2a1;
 					m(i, j + lda) += 0.5*a2daga1dag;
 					m(i + lda, j + lda)  += 0.5*a2a1dag;
+
+					centralCellAcc[j] += 0.5*a1daga1;
+					centralCellAcc[j + lda] +=0.5*a1daga1;
 				}
 			}
 		}
 	}
 
-	void fillThisMatrixPixel1(MatrixComplexOrRealType& m, SizeType ind) const
+	void fillThisMatrixPixel1(MatrixComplexOrRealType& m,
+	                          VectorType& centralCellAcc,
+	                          SizeType ind) const
 	{
 		static const ComplexOrRealType sqrtMinusOne = ComplexOrRealType(0, 1);
 		static const SizeType norbital = 1;
