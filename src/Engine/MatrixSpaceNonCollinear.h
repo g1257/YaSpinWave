@@ -90,8 +90,6 @@ private:
 				const RealType phi1 = common_.phi(j);
 				const RealType s1 = common_.modulus(j);
 
-				//const ComplexOrRealType a2daga1,a2a1,a1daga1,a2daga1dag,a2a1dag,adaga;
-
 				const ComplexOrRealType Axx = common_.J(3*i + 0, 3*j + 0, ind);
 				const ComplexOrRealType Axy = common_.J(3*i + 0, 3*j + 1, ind);
 				const ComplexOrRealType Axz = common_.J(3*i + 0, 3*j + 2, ind);
@@ -184,7 +182,7 @@ private:
 					m(i, j) += 0.5*a2daga1;
 					m(i + lda, j) += 0.5*a2a1;
 					m(i, j + lda) += 0.5*a2daga1dag;
-					m(j+lda,i+lda)  += 0.5*a2a1dag;
+					m(i + lda, j + lda)  += 0.5*a2a1dag;
 				}
 			}
 		}
