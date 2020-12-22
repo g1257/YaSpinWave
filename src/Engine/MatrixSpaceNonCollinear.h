@@ -246,53 +246,6 @@ private:
 		}
 	}
 
-	ComplexOrRealType diagonal(SizeType i) const
-	{
-		ComplexOrRealType sum = 0;
-		SizeType lda = common_.rows();
-		RealType taui = u_[i](2,2);
-		ComplexType xiistar = std::conj(xi(i));
-		for (SizeType ind = 0; ind < common_.size(); ++ind) {
-			for (SizeType j = 0; j < lda; ++j) {
-				RealType factor = std::real(xiistar * xi(j)) + taui * u_[j](2,2);
-				sum += common_.J(i,j,ind)*factor;
-			}
-		}
-
-		return -sum;
-	}
-
-	ComplexType aplus(SizeType i, SizeType j, SizeType ind) const
-	{
-		RealType t1 = common_.theta(i);
-		RealType p1 = common_.phi(i);
-		RealType t2 = common_.theta(j);
-		RealType p2 = common_.phi(j);
-		RealType deltaPhi = p1-p2;
-		RealType re = cos(deltaPhi)*(cos(t1)*cos(t2) + 1) + sin(t1)*sin(t2);
-		RealType im = sin(deltaPhi)*(cos(t2) + cos(t1));
-		ComplexType tmp(re,im);
-		return 0.5*tmp*common_.J(i,j,ind);
-	}
-
-	ComplexType bplus(SizeType i, SizeType j, SizeType ind) const
-	{
-		RealType t1 = common_.theta(i);
-		RealType p1 = common_.phi(i);
-		RealType t2 = common_.theta(j);
-		RealType p2 = common_.phi(j);
-		RealType deltaPhi = p1-p2;
-		RealType re = cos(deltaPhi)*(cos(t1)*cos(t2) - 1) + sin(t1)*sin(t2);
-		RealType im = sin(deltaPhi)*(cos(t2) - cos(t1));
-		ComplexType tmp(re,im);
-		return 0.5*tmp*common_.J(i,j,ind);
-	}
-
-	ComplexType xi(SizeType i) const
-	{
-		return ComplexType(u_[i](0,2),u_[i](1,2));
-	}
-
 	void fillUmatrix(SizeType i)
 	{
 		assert(i < u_.size());
