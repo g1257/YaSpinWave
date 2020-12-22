@@ -256,14 +256,13 @@ private:
 
 				ComplexOrRealType a2a1dag = PsimagLite::conj(a2daga1);
 
-				m(i, j) += common_.J(i, j, ind)*a2daga1;
-				m(i + norbital, j) += common_.J(i, j, ind)*a2a1;
-				m(i, j + norbital) += common_.J(i, j, ind)*a2daga1dag;
-				m(i + norbital, j + norbital) += common_.J(i, j, ind)*a2a1dag;
-				if (common_.isCentralCell(ind) && i == j) {
-					m(i, i) += common_.J(i, i, ind)*a1daga1;
-					m(i + norbital, i + norbital) += common_.J(i, i, ind)*a1daga1;
-				}
+				m(i, j) += 0.5*common_.J(i, j, ind)*a2daga1;
+				m(i + norbital, j) += 0.5*common_.J(i, j, ind)*a2a1;
+				m(i, j + norbital) += 0.5*common_.J(i, j, ind)*a2daga1dag;
+				m(i + norbital, j + norbital) += 0.5*common_.J(i, j, ind)*a2a1dag;
+
+				centralCellAcc[j] += 0.5*common_.J(i, j, ind)*a1daga1;
+				centralCellAcc[j + norbital] += 0.5*common_.J(i, j, ind)*a1daga1;
 			}
 		}
 	}
