@@ -61,6 +61,20 @@ private:
 
 	void fillThisMatrix(MatrixComplexOrRealType& m, SizeType ind) const
 	{
+		switch (common_.pixelSize()) {
+		case 1:
+			fillThisMatrixPixel1(m, ind);
+			break;
+		case 3:
+			fillThisMatrixPixel3(m, ind);
+			break;
+		default:
+			err("fillThisMatrix: pixelSize must be one or three\n");
+		}
+	}
+
+	void fillThisMatrixPixel3(MatrixComplexOrRealType& m, SizeType ind) const
+	{
 		static const ComplexOrRealType sqrtMinusOne = ComplexOrRealType(0, 1);
 
 		SizeType lda = common_.rows();
@@ -128,15 +142,15 @@ private:
 				        Ayz*sqrt(s1)*sqrt(s2)*cos(theta1)*sin(phi1)*sin(theta2)/2. +
 				        Azz*sqrt(s1)*sqrt(s2)*sin(theta1)*sin(theta2)/2.;
 
-//				const ComplexOrRealType  a1daga1 = s2*cos(theta2)*(-Azz*cos(theta1) -
-//				                                                   Axz*cos(phi1)*sin(theta1) -
-//				                                                   Ayz*sin(phi1)*sin(theta1)) +
-//				        s2*cos(phi2)*(-Azx*cos(theta1) -
-//				                      Axx*cos(phi1)*sin(theta1) -
-//				                      Ayx*sin(phi1)*sin(theta1))*sin(theta2) +
-//				        s2*sin(phi2)*(-Azy*cos(theta1) -
-//				                      Axy*cos(phi1)*sin(theta1) -
-//				                      Ayy*sin(phi1)*sin(theta1))*sin(theta2);
+				//				const ComplexOrRealType  a1daga1 = s2*cos(theta2)*(-Azz*cos(theta1) -
+				//				                                                   Axz*cos(phi1)*sin(theta1) -
+				//				                                                   Ayz*sin(phi1)*sin(theta1)) +
+				//				        s2*cos(phi2)*(-Azx*cos(theta1) -
+				//				                      Axx*cos(phi1)*sin(theta1) -
+				//				                      Ayx*sin(phi1)*sin(theta1))*sin(theta2) +
+				//				        s2*sin(phi2)*(-Azy*cos(theta1) -
+				//				                      Axy*cos(phi1)*sin(theta1) -
+				//				                      Ayy*sin(phi1)*sin(theta1))*sin(theta2);
 
 				const ComplexOrRealType adaga = Ayy*s1*pow(cos(phi1),2) -
 				        2.0*Azz*s1*pow(cos(theta1),2) +
@@ -171,6 +185,62 @@ private:
 					m(i + lda, j) += 0.5*a2a1;
 					m(i, j + lda) += 0.5*a2daga1dag;
 					m(j+lda,i+lda)  += 0.5*a2a1dag;
+				}
+			}
+		}
+	}
+
+	void fillThisMatrixPixel1(MatrixComplexOrRealType& m, SizeType ind) const
+	{
+		static const ComplexOrRealType sqrtMinusOne = ComplexOrRealType(0, 1);
+		static const SizeType norbital = 1;
+
+		SizeType lda = common_.rows();
+		for (SizeType i = 0; i < lda; ++i) {
+
+			const RealType theta2 = common_.theta(i);
+			const RealType phi2 = common_.phi(i);
+
+			for (SizeType j = 0; j < lda; ++j) {
+
+				const RealType theta1 = common_.theta(j);
+				const RealType phi1 = common_.phi(j);
+
+				ComplexOrRealType a2daga1=0.5*cos(phi1)*cos(phi2)+
+				        0.5*cos(theta1)*cos(theta2)*cos(phi1)*cos(phi2)+
+				        0.5*sin(theta1)*sin(theta2)+
+				        0.5*sqrtMinusOne*cos(theta1)*cos(phi2)*sin(phi1)+
+				        0.5*sqrtMinusOne*cos(theta2)*cos(phi2)*sin(phi1)-
+				        0.5*sqrtMinusOne*cos(theta1)*cos(phi1)*sin(phi2)
+				        -0.5*sqrtMinusOne*cos(theta2)*cos(phi1)*sin(phi2)+
+				        0.5*sin(phi1)*sin(phi2)+
+				        0.5*cos(theta1)*cos(theta2)*sin(phi1)*sin(phi2);
+
+				ComplexOrRealType a2a1 = -0.5*cos(phi1)*cos(phi2)+
+				        0.5*cos(theta1)*cos(theta2)*cos(phi1)*cos(phi2)+
+				        0.5*sin(theta1)*sin(theta2)-
+				        0.5*sqrtMinusOne*cos(theta1)*cos(phi2)*sin(phi1)+
+				        0.5*sqrtMinusOne*cos(theta2)*cos(phi2)*sin(phi1)+
+				        0.5*sqrtMinusOne*cos(theta1)*cos(phi1)*sin(phi2)-
+				        0.5*sqrtMinusOne*cos(theta2)*cos(phi1)*sin(phi2)-
+				        0.5*sin(phi1)*sin(phi2)+
+				        0.5*cos(theta1)*cos(theta2)*sin(phi1)*sin(phi2);
+
+				ComplexOrRealType a1daga1 = -cos(theta1)*cos(theta2)-
+				        cos(phi1)*cos(phi2)*sin(theta1)*sin(theta2)-
+				        sin(theta1)*sin(theta2)*sin(phi1)*sin(phi2);
+
+				ComplexOrRealType a2daga1dag = PsimagLite::conj(a2a1);
+
+				ComplexOrRealType a2a1dag = PsimagLite::conj(a2daga1);
+
+				m(i, j) += common_.J(i, j, ind)*a2daga1;
+				m(i + norbital, j) += common_.J(i, j, ind)*a2a1;
+				m(i, j + norbital) += common_.J(i, j, ind)*a2daga1dag;
+				m(i + norbital, j + norbital) += common_.J(i, j, ind)*a2a1dag;
+				if (common_.isCentralCell(ind) && i == j) {
+					m(i, i) += common_.J(i, i, ind)*a1daga1;
+					m(i + norbital, i + norbital) += common_.J(i, i, ind)*a1daga1;
 				}
 			}
 		}

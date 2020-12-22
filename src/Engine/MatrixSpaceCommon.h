@@ -50,6 +50,8 @@ public:
 		return sc_(i,j,ind);
 	}
 
+	SizeType pixelSize() const { return sc_.pixelSize(); }
+
 	bool isCentralCell(SizeType ind) const { return sc_.isCentralCell(ind); }
 
 	RealType modulus(SizeType x) const
