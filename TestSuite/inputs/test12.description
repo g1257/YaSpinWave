@@ -1,0 +1,7 @@
+../../src/anglesToMatrix -j couplings10.txt -a angles10.txt > /tmp/hamiltonian10.txt
+diff -b /tmp/hamiltonian10.txt .
+
+../../src/anglesToMatrix -j couplings12.in -a angles12.out -P 3 -M modulus12.in > /tmp/hamiltonian12.txt
+diff -b /tmp/hamiltonian12.txt .
+
+

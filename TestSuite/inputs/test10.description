@@ -1,2 +1,2 @@
 ../../src/anglesToMatrix -j couplings10.txt -a angles10.txt > /tmp/hamiltonian10.txt
-diff /tmp/hamiltonian10.txt .
+diff -b /tmp/hamiltonian10.txt .
