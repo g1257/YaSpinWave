@@ -22,7 +22,7 @@ public:
 		PsimagLite::String mfile;
 		PsimagLite::String casefile;
 		PsimagLite::String mapfile;
-		PsimagLite::String jfile;
+		PsimagLite::String hsfile;
 		PsimagLite::String outputfile;
 		PsimagLite::String anglesfile;
 		PsimagLite::String modulusfile;
@@ -36,7 +36,7 @@ public:
 			if (mfile == "") msg = "Missing Hamiltonian file\n";
 			if (casefile == "") msg = "Missing case file\n";
 			if (mapfile == "") msg = "Missing map file\n";
-			if (jfile == "") msg = "Missing jfile (couplings) file\n";
+			if (hsfile == "") msg = "Missing hsfile (couplings) file\n";
 			if (outputfile == "") msg = "Missing outputfile file\n";
 			if (anglesfile == "") msg = "Missing anglesfile file\n";
 			if (modulusfile == "") msg = "Missing modulusfile file\n";
@@ -49,12 +49,45 @@ public:
 
 	public:
 
+		CaseAux(PsimagLite::String file)
+		{
+			const SizeType rows = 3;
+			const SizeType cols = 3;
+			MatrixRealType xb(rows, cols);
+			xbc_.resize(rows, cols);
+
+			if (file.find(".aux") == PsimagLite::String::npos)
+				file += ".aux";
+
+			{
+				std::ifstream fin(file.c_str());
+
+				for (SizeType i = 0; i < rows; ++i)
+					for (SizeType j = 0; j < cols; ++j)
+						fin>>xbc_(i, j);
+
+				for (SizeType i = 0; i < rows; ++i)
+					for (SizeType j = 0; j < cols; ++j)
+						fin>>xb(i, j);
+
+				fin.close();
+			}
+
+			inverse(xb);
+			bbc_ = xb*xbc_;
+		}
+
+	private:
+
+		MatrixRealType xbc_;
+		MatrixRealType bbc_;
 	};
 
 	MatrixReciprocalSpace(const ReciprocalArgs& reciprocalArgs, SizeType pixelSize, bool verbose)
-	    : sc_(reciprocalArgs.jfile, pixelSize, verbose),
+	    : sc_(reciprocalArgs.hsfile, pixelSize, verbose),
 	      verbose_(verbose),
-	      reciprocalArgs_(reciprocalArgs)
+	      reciprocalArgs_(reciprocalArgs),
+	      caseAux_(reciprocalArgs.casefile)
 	{}
 
 	VectorRealType dispersion(const VectorRealType& q) const
@@ -69,7 +102,7 @@ public:
 		if (!isHermitian(a,true)) {
 			PsimagLite::String msg("MatrixSpaceNonCollinear: ");
 			msg += "Hamiltonian matrix is not Hermitian\n";
-//			throw PsimagLite::RuntimeError(msg);
+			//			throw PsimagLite::RuntimeError(msg);
 		}
 
 		multiplyByG(a);
@@ -100,7 +133,7 @@ private:
 
 	RealType computeKlength(const CaseAux& caseAux,
 	                        const VectorRealType& kbegin,
-			                const VectorRealType& kend) const
+	                        const VectorRealType& kend) const
 	{
 		const SizeType npanel = sc_.size();
 
@@ -198,6 +231,7 @@ private:
 	SpaceConnectorsType sc_;
 	bool verbose_;
 	const ReciprocalArgs& reciprocalArgs_;
+	CaseAux caseAux_;
 };
 
 } // namespace yasw

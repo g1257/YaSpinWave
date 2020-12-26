@@ -11,7 +11,7 @@ void usage(const char *progName)
 	std::cerr<<"\t-m H.txt (Hamiltonian file, which is output of anglesToMatrix)\n";
 	std::cerr<<"\t-c Case file without extension (?)\n";
 	std::cerr<<"\t-A mapfile (?)\n";
-	std::cerr<<"\t-j jfile\n";
+	std::cerr<<"\t-s hsfile (?)\n";
 	std::cerr<<"\t-k nk\n";
 	std::cerr<<"\t-w width (?)\n";
 	std::cerr<<"\t-O outputfile\n";
@@ -36,7 +36,7 @@ int main(int argc, char** argv)
 	bool verbose = false;
 	SizeType pixel = 1;
 
-	while ((opt = getopt(argc, argv,"m:c:A:j:k:w:O:a:f:M:P:v")) != -1) {
+	while ((opt = getopt(argc, argv,"m:c:A:s:k:w:O:a:f:M:P:v")) != -1) {
 		switch (opt) {
 		case 'm':
 			reciprocalArgs.mfile = optarg;
@@ -47,8 +47,8 @@ int main(int argc, char** argv)
 		case 'A':
 			reciprocalArgs.mapfile = optarg;
 			break;
-		case 'j':
-			reciprocalArgs.jfile = optarg;
+		case 's':
+			reciprocalArgs.hsfile = optarg;
 			break;
 		case 'k':
 			reciprocalArgs.nk = PsimagLite::atoi(optarg);
