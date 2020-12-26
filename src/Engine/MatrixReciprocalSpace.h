@@ -27,14 +27,16 @@ public:
 
 		bool check() const
 		{
-			if (mfile != "") err("Missing Hamiltonian file\n");
-			if (casefile != "") err("Missing case file\n");
-			if (mapfile != "") err("Missing map file\n");
-			if (jfile != "") err("Missing jfile (couplings) file\n");
-			if (outputfile != "") err("Missing outputfile file\n");
-			if (anglesfile != "") err("Missing anglesfile file\n");
-			if (modulusfile != "") err("Missing modulusfile file\n");
-			return true;
+			PsimagLite::String msg;
+			if (mfile == "") msg = "Missing Hamiltonian file\n";
+			if (casefile == "") msg = "Missing case file\n";
+			if (mapfile == "") msg = "Missing map file\n";
+			if (jfile == "") msg = "Missing jfile (couplings) file\n";
+			if (outputfile == "") msg = "Missing outputfile file\n";
+			if (anglesfile == "") msg = "Missing anglesfile file\n";
+			if (modulusfile == "") msg = "Missing modulusfile file\n";
+			if (msg != "") std::cerr<<msg;
+			return (msg == "");
 		}
 	};
 
