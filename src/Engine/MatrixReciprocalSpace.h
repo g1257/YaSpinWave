@@ -8,30 +8,43 @@ namespace yasw {
 template<typename ComplexOrRealType>
 class MatrixReciprocalSpace {
 
-	typedef yasw::SpaceConnectors<ComplexOrRealType> SpaceConnectorsType;
-
 public:
 
+	typedef yasw::SpaceConnectors<ComplexOrRealType> SpaceConnectorsType;
 	typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
+
+	struct ReciprocalArgs {
+		PsimagLite::String mfile;
+		PsimagLite::String casefile;
+		PsimagLite::String mapfile;
+		PsimagLite::String jfile;
+		PsimagLite::String outputfile;
+		PsimagLite::String anglesfile;
+		PsimagLite::String modulusfile;
+		SizeType nk = 400;
+		SizeType width = 1;
+		RealType cutoff = 0.0001;
+
+		bool check() const
+		{
+			if (mfile != "") err("Missing Hamiltonian file\n");
+			if (casefile != "") err("Missing case file\n");
+			if (mapfile != "") err("Missing map file\n");
+			if (jfile != "") err("Missing jfile (couplings) file\n");
+			if (outputfile != "") err("Missing outputfile file\n");
+			if (anglesfile != "") err("Missing anglesfile file\n");
+			if (modulusfile != "") err("Missing modulusfile file\n");
+			return true;
+		}
+	};
+
 	typedef std::complex<RealType> ComplexType;
 	typedef typename SpaceConnectorsType::MatrixComplexOrRealType MatrixType;
 	typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
 
-	MatrixReciprocalSpace(PsimagLite::String mfile, SizeType pixelSize, bool verbose)
-	    : sc_(mfile, pixelSize, verbose), verbose_(verbose)
+	MatrixReciprocalSpace(const ReciprocalArgs& reciprocalArgs, SizeType pixelSize, bool verbose)
+	    : sc_(reciprocalArgs.mfile, pixelSize, verbose), verbose_(verbose)
 	{}
-
-	MatrixType getMatrix(const VectorRealType& q) const
-	{
-		SizeType cells = sc_.size();
-		SizeType rows = sc_.rows();
-		MatrixType m(rows,rows);
-		for (SizeType n = 0; n < cells; ++n) {
-			procThisCell(m,n,q);
-		}
-
-		return m;
-	}
 
 	VectorRealType dispersion(const VectorRealType& q) const
 	{
@@ -116,6 +129,18 @@ private:
 				a(i,j) *= (-1.0);
 			}
 		}
+	}
+
+	MatrixType getMatrix(const VectorRealType& q) const
+	{
+		SizeType cells = sc_.size();
+		SizeType rows = sc_.rows();
+		MatrixType m(rows,rows);
+		for (SizeType n = 0; n < cells; ++n) {
+			procThisCell(m,n,q);
+		}
+
+		return m;
 	}
 
 	SpaceConnectorsType sc_;
