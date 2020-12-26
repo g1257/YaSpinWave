@@ -87,17 +87,6 @@ int main(int argc, char** argv)
 
 	MatrixReciprocalSpaceType matrixReciprocal(reciprocalArgs, pixel, verbose);
 
-//	MatrixReciprocalSpaceType::VectorRealType q(tokens.size());
-//	for (SizeType i = 0; i < q.size(); ++i) {
-//		q[i] = atof(tokens[i].c_str());
-//		if (verbose) std::cerr<<"q["<<i<<"]= "<<q[i]<<"\n";
-//	}
-
-//	const VectorRealType& dispersion = matrixReciprocal.dispersion(q);
-//	for (SizeType i = 0; i < dispersion.size(); ++i)
-//		std::cout<<dispersion[i]<<" ";
-//	std::cout<<"\n";
-
 	return 0;
 }
 

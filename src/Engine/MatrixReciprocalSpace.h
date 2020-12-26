@@ -207,79 +207,7 @@ public:
 	      hs_(reciprocalArgs.hsfile, caseAux_, reciprocalArgs_.nk)
 	{}
 
-	VectorRealType dispersion(const VectorRealType& q) const
-	{
-		MatrixType a = getMatrix(q);
-		if (verbose_) {
-			std::cerr<<"Hamiltonian matrix in k-space:\n";
-			std::cerr<<a;
-			std::cerr<<"-------------\n";
-		}
-
-		if (!isHermitian(a,true)) {
-			PsimagLite::String msg("MatrixSpaceNonCollinear: ");
-			msg += "Hamiltonian matrix is not Hermitian\n";
-			//			throw PsimagLite::RuntimeError(msg);
-		}
-
-		multiplyByG(a);
-
-		if (verbose_) {
-			std::cerr<<"Dynamic matrix in k-space:\n";
-			std::cerr<<a;
-			std::cerr<<"-------------\n";
-		}
-
-		MatrixType vl(10,10), vr(10,10);
-		typename PsimagLite::Vector<ComplexType>::Type eigenvalues(a.n_row());
-		PsimagLite::geev('N','N',a,eigenvalues,vl,vr);
-		VectorRealType ev;
-		for (SizeType i = 0; i < eigenvalues.size(); ++i) {
-			if (verbose_) std::cerr<<eigenvalues[i]<<"\n";
-			RealType e = getRealPart(eigenvalues[i]);
-			if (e < 0) continue;
-			if (isInVector(ev,e)) continue;
-			ev.push_back(e);
-		}
-
-		std::sort(ev.begin(),ev.end());
-		return ev;
-	}
-
 private:
-
-
-	RealType getRealPart(ComplexType c) const
-	{
-		if (fabs(std::imag(c)) > 1e-6) {
-			PsimagLite::String msg("MatrixReciprocalSpace::getRealPart(): ");
-			msg += "The number " + ttos(c) + " is not real\n";
-			throw PsimagLite::RuntimeError(msg);
-		}
-
-		return std::real(c);
-	}
-
-	bool isInVector(const VectorRealType& ev, RealType e) const
-	{
-		for (SizeType j = 0; j < ev.size(); ++j) {
-			if (fabs(ev[j]-e) < 1e-4) return true;
-		}
-
-		return false;
-	}
-
-	void multiplyByG(MatrixType& a) const
-	{
-		SizeType n = a.n_row();
-		SizeType nOver2 = static_cast<SizeType>(n*0.5);
-
-		for (SizeType i = nOver2; i < n; ++i) {
-			for (SizeType j = 0; j < n; ++j) {
-				a(i,j) *= (-1.0);
-			}
-		}
-	}
 
 	const ReciprocalArgs& reciprocalArgs_;
 	bool verbose_;
