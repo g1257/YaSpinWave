@@ -18,6 +18,20 @@ public:
 	typedef typename PsimagLite::Vector<VectorRealType>::Type VectorVectorRealType;
 	typedef PsimagLite::Matrix<RealType> MatrixRealType;
 
+	static VectorRealType matMulVec(const MatrixRealType& m, const VectorRealType& v)
+	{
+		const SizeType rows = m.rows();
+		const SizeType cols = m.cols();
+		assert(rows == v.size());
+		VectorRealType w(rows);
+		for (SizeType i = 0; i < rows; ++i) {
+			for (SizeType j = 0; j < cols; ++j) {
+				w[i] += m(i, j)*v[j];
+			}
+		}
+
+		return w;
+	}
 	struct ReciprocalArgs {
 		PsimagLite::String mfile;
 		PsimagLite::String casefile;
@@ -44,6 +58,7 @@ public:
 			return (msg == "");
 		}
 	};
+
 
 	class CaseAux {
 
@@ -77,17 +92,119 @@ public:
 			bbc_ = xb*xbc_;
 		}
 
+		const MatrixRealType& xbc() const { return xbc_; }
+
+		const MatrixRealType& bbc() const { return bbc_; }
+
 	private:
 
 		MatrixRealType xbc_;
 		MatrixRealType bbc_;
 	};
 
+	class Hs {
+
+	public:
+
+		Hs(PsimagLite::String file, const CaseAux& caseAux, SizeType nk)
+		{
+			const SizeType cols = 3;
+			int npanel = 0;
+
+			{
+				std::ifstream fin(file.c_str());
+				fin>>npanel;
+				assert(npanel > 0);
+				kbegin_.resize(npanel);
+				kend_.resize(npanel);
+				kdiff_.resize(npanel);
+				for (int i = 0; i < npanel; ++i) {
+					kbegin_[i].resize(cols);
+					for (SizeType j = 0; j < cols; ++j)
+						fin>>kbegin_[i][j];
+
+					kend_[i].resize(cols);
+					kdiff_[i].resize(cols);
+					for (SizeType j = 0; j < cols; ++j) {
+						fin>>kend_[i][j];
+						kdiff_[i][j] = kend_[i][j] - kbegin_[i][j];
+					}
+				}
+			}
+
+			createMesh(caseAux, nk);
+		}
+
+	private:
+
+		RealType computeKlength(const CaseAux& caseAux) const
+		{
+			const SizeType npanel = kbegin_.size();
+
+			//klengthtot (from Tom B.)
+			RealType klengthtot(0);
+			for (SizeType i = 0; i < npanel; ++i)
+				klengthtot += PsimagLite::norm(matMulVec(caseAux.xbc(), kdiff(i)));
+			return klengthtot;
+		}
+
+		const VectorRealType& kdiff(SizeType ind) const
+		{
+			assert(ind < kdiff_.size());
+			return kdiff_[ind];
+		}
+
+		void createMesh(const CaseAux& caseAux, SizeType nk)
+		{
+			const SizeType npanel = kbegin_.size();
+			const RealType klengthtot = computeKlength(caseAux);
+
+			//generate kmesh,klenght (taken from Tom B.)
+			RealType klengthtmp = 0;
+			const SizeType cols = kbegin_.size();
+			assert(cols == 3);
+			VectorRealType tmpVec(cols);
+			for (SizeType i = 0; i < npanel; ++i) {
+				RealType panellenght = PsimagLite::norm(matMulVec(caseAux.xbc(), kdiff(i)));
+				int panelnk = ceil(nk*panellenght/klengthtot);
+				for (int j = 0; j < panelnk; ++j) {
+					const RealType factor = (1.*j/panelnk);
+					fillTmpVec(tmpVec, i, factor);
+					VectorRealType k = matMulVec(caseAux.bbc(),
+					                             tmpVec);
+					kmesh_.push_back(k);
+					klength_.push_back(klengthtmp+(1.*j/panelnk)*panellenght);
+				}
+
+				klengthtmp += panellenght;
+			}
+
+			kmesh_.push_back(kend_[npanel - 1]);
+			klength_.push_back(klengthtot);
+		}
+
+		void fillTmpVec(VectorRealType& tmpVec, SizeType i, RealType factor) const
+		{
+			assert(i < kbegin_.size());
+			const SizeType cols = kbegin_[i].size();
+			assert(cols == 3);
+			if (tmpVec.size() != cols) tmpVec.resize(cols);
+			for (SizeType jj = 0; jj < cols; ++jj)
+				tmpVec[jj] = kbegin_[i][jj] + factor*kdiff(i)[jj];
+		}
+
+		VectorVectorRealType kbegin_;
+		VectorVectorRealType kend_;
+		VectorVectorRealType kdiff_;
+		VectorVectorRealType kmesh_;
+		VectorRealType klength_;
+	};
+
 	MatrixReciprocalSpace(const ReciprocalArgs& reciprocalArgs, SizeType pixelSize, bool verbose)
-	    : sc_(reciprocalArgs.hsfile, pixelSize, verbose),
+	    : reciprocalArgs_(reciprocalArgs),
 	      verbose_(verbose),
-	      reciprocalArgs_(reciprocalArgs),
-	      caseAux_(reciprocalArgs.casefile)
+	      caseAux_(reciprocalArgs.casefile),
+	      hs_(reciprocalArgs.hsfile, caseAux_, reciprocalArgs_.nk)
 	{}
 
 	VectorRealType dispersion(const VectorRealType& q) const
@@ -131,58 +248,6 @@ public:
 
 private:
 
-	RealType computeKlength(const CaseAux& caseAux,
-	                        const VectorRealType& kbegin,
-	                        const VectorRealType& kend) const
-	{
-		const SizeType npanel = sc_.size();
-
-		//klengthtot (from Tom B.)
-		RealType klengthtot(0);
-		for (SizeType i = 0; i < npanel; ++i)
-			klengthtot += PsimagLite::norm(matMulVec(caseAux.xbc(), kend[i] - kbegin[i]));
-		return klengthtot;
-	}
-
-	void createMesh(const CaseAux& caseAux,
-	                const VectorRealType& kbegin,
-	                const VectorRealType& kend)
-	{
-		const SizeType npanel = sc_.size();
-		const RealType klengthtot = computeKlength(caseAux, kbegin, kend);
-
-		//generate kmesh,klenght (taken from Tom B.)
-		VectorVectorRealType kmesh;
-		VectorRealType klength;
-		RealType klengthtmp = 0;
-		for (SizeType i = 0; i < npanel; ++i) {
-			RealType panellenght = PsimagLite::norm(matMulVec(caseAux.xbc(), kend[i] - kbegin[i]));
-			int panelnk = ceil(reciprocalArgs_.nk*panellenght/klengthtot);
-			for (int j = 0; j < panelnk; ++j) {
-				VectorRealType k = matMulVec(caseAux.bbc(),
-				                             kbegin[i]+(1.*j/panelnk)*(kend[i] - kbegin[i]));
-				kmesh.push_back(k);
-				klength.push_back(klengthtmp+(1.*j/panelnk)*panellenght);
-			}
-
-			klengthtmp += panellenght;
-		}
-
-		kmesh.push_back(kend[npanel-1]);
-		klength.push_back(klengthtot);
-	}
-
-	void procThisCell(MatrixType& m,SizeType n, const VectorRealType& q) const
-	{
-		RealType wqn = 0.0;
-		for (SizeType i = 0; i < q.size(); ++i) {
-			wqn += sc_.nmatrix(n,i) * q[i];
-		}
-
-		wqn *= (2.0 * M_PI);
-
-		m += ComplexType(cos(wqn),sin(wqn)) * sc_.getMatrix(n);
-	}
 
 	RealType getRealPart(ComplexType c) const
 	{
@@ -216,22 +281,10 @@ private:
 		}
 	}
 
-	MatrixType getMatrix(const VectorRealType& q) const
-	{
-		SizeType cells = sc_.size();
-		SizeType rows = sc_.rows();
-		MatrixType m(rows,rows);
-		for (SizeType n = 0; n < cells; ++n) {
-			procThisCell(m,n,q);
-		}
-
-		return m;
-	}
-
-	SpaceConnectorsType sc_;
-	bool verbose_;
 	const ReciprocalArgs& reciprocalArgs_;
+	bool verbose_;
 	CaseAux caseAux_;
+	Hs hs_;
 };
 
 } // namespace yasw
