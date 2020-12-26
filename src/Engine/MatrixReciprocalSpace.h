@@ -12,6 +12,11 @@ public:
 
 	typedef yasw::SpaceConnectors<ComplexOrRealType> SpaceConnectorsType;
 	typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
+	typedef std::complex<RealType> ComplexType;
+	typedef typename SpaceConnectorsType::MatrixComplexOrRealType MatrixType;
+	typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
+	typedef typename PsimagLite::Vector<VectorRealType>::Type VectorVectorRealType;
+	typedef PsimagLite::Matrix<RealType> MatrixRealType;
 
 	struct ReciprocalArgs {
 		PsimagLite::String mfile;
@@ -40,12 +45,16 @@ public:
 		}
 	};
 
-	typedef std::complex<RealType> ComplexType;
-	typedef typename SpaceConnectorsType::MatrixComplexOrRealType MatrixType;
-	typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
+	class CaseAux {
+
+	public:
+
+	};
 
 	MatrixReciprocalSpace(const ReciprocalArgs& reciprocalArgs, SizeType pixelSize, bool verbose)
-	    : sc_(reciprocalArgs.mfile, pixelSize, verbose), verbose_(verbose)
+	    : sc_(reciprocalArgs.jfile, pixelSize, verbose),
+	      verbose_(verbose),
+	      reciprocalArgs_(reciprocalArgs)
 	{}
 
 	VectorRealType dispersion(const VectorRealType& q) const
@@ -88,6 +97,47 @@ public:
 	}
 
 private:
+
+	RealType computeKlength(const CaseAux& caseAux,
+	                        const VectorRealType& kbegin,
+			                const VectorRealType& kend) const
+	{
+		const SizeType npanel = sc_.size();
+
+		//klengthtot (from Tom B.)
+		RealType klengthtot(0);
+		for (SizeType i = 0; i < npanel; ++i)
+			klengthtot += PsimagLite::norm(matMulVec(caseAux.xbc(), kend[i] - kbegin[i]));
+		return klengthtot;
+	}
+
+	void createMesh(const CaseAux& caseAux,
+	                const VectorRealType& kbegin,
+	                const VectorRealType& kend)
+	{
+		const SizeType npanel = sc_.size();
+		const RealType klengthtot = computeKlength(caseAux, kbegin, kend);
+
+		//generate kmesh,klenght (taken from Tom B.)
+		VectorVectorRealType kmesh;
+		VectorRealType klength;
+		RealType klengthtmp = 0;
+		for (SizeType i = 0; i < npanel; ++i) {
+			RealType panellenght = PsimagLite::norm(matMulVec(caseAux.xbc(), kend[i] - kbegin[i]));
+			int panelnk = ceil(reciprocalArgs_.nk*panellenght/klengthtot);
+			for (int j = 0; j < panelnk; ++j) {
+				VectorRealType k = matMulVec(caseAux.bbc(),
+				                             kbegin[i]+(1.*j/panelnk)*(kend[i] - kbegin[i]));
+				kmesh.push_back(k);
+				klength.push_back(klengthtmp+(1.*j/panelnk)*panellenght);
+			}
+
+			klengthtmp += panellenght;
+		}
+
+		kmesh.push_back(kend[npanel-1]);
+		klength.push_back(klengthtot);
+	}
 
 	void procThisCell(MatrixType& m,SizeType n, const VectorRealType& q) const
 	{
@@ -147,6 +197,7 @@ private:
 
 	SpaceConnectorsType sc_;
 	bool verbose_;
+	const ReciprocalArgs& reciprocalArgs_;
 };
 
 } // namespace yasw
