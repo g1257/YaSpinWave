@@ -87,7 +87,8 @@ int main(int argc, char** argv)
 
 	MatrixReciprocalSpaceType matrixReciprocal(reciprocalArgs, pixel, verbose);
 
-	matrixReciprocal.mainLoop();
+	PsimagLite::String str;
+	matrixReciprocal.mainLoop(str);
 	return 0;
 }
 

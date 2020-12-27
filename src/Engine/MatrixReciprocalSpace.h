@@ -153,6 +153,12 @@ public:
 			return kmesh_[ik];
 		}
 
+		const RealType& klength(SizeType ind) const
+		{
+			assert(ind < klength_.size());
+			return klength_[ind];
+		}
+
 	private:
 
 		RealType computeKlength(const CaseAux& caseAux) const
@@ -228,7 +234,7 @@ public:
 	      hs_(reciprocalArgs.hsfile, caseAux_, reciprocalArgs_.nk)
 	{}
 
-	void mainLoop()
+	void mainLoop(PsimagLite::String& line)
 	{
 		const SizeType norbital = sc_.rows(); // may need to multiply by pixelSize FIXME TODO
 
@@ -240,7 +246,8 @@ public:
 		MatrixType Ydag;
 		MatrixType mvl;
 		for (SizeType ik = 0; ik < nkmesh; ++ik) {
-			//fout<<kmesh[ik]<<" "<<klength[ik];
+			PsimagLite::String kmeshStr = vectorToString(hs_.kMesh(ik));
+			line += kmeshStr + " " + ttos(hs_.klength(ik));
 			//std::cerr<<"q="<<kmesh[ik]<<'\n';
 			VectorRealType xk = matMulVec(caseAux_.xb(), hs_.kMesh(ik));
 
@@ -253,6 +260,8 @@ public:
 
 			VectorBoolType deletedIndices(E.size(), false);
 			numImtot += cutoffImE(deletedIndices, E);
+
+			printRe(line, deletedIndices, E);
 		}
 	}
 
@@ -307,6 +316,67 @@ private:
 		//log numImE
 		std::cerr<<"number of ImE="<<erased<<'\n';
 		return erased;
+	}
+
+	void printRe(PsimagLite::String& line,
+	             const VectorBoolType& deletedIndices,
+	             const VectorType& E) const
+	{
+		// from Tom B.
+		//print reE
+		const SizeType norbital = E.size();
+		for (SizeType ie = 0; ie < norbital; ++ie) {
+			if (deletedIndices[ie]) continue;
+			line += " " + ttos(PsimagLite::real(E[ie]));
+		}
+
+		for (SizeType ie = 0; ie < norbital; ++ie) {
+			if (!deletedIndices[ie]) continue;
+			line += " 123.456789";
+		}
+	}
+
+	void orthogonalize(SizeType erased, const VectorType& E, const MatrixType& Ydag) const
+	{
+		// taken from Tom B.
+		const SizeType norbital = E.size();
+		const SizeType norbitalOver2 = norbital/2;
+		assert(norbital > erased);
+		MatrixType Xdag(norbital, norbital - erased);
+		const SizeType cols = Xdag.cols();
+		VectorRealType X2X(cols);
+		for (SizeType ie1 = 0; ie1 < cols; ++ie1) {
+
+			for(SizeType io = 0; io < norbital; ++io)
+				Xdag(io, ie1) = Ydag(io, ie1);
+
+			for(SizeType ie2 = 0; ie2 < ie1; ++ie2) {
+				ComplexOrRealType X2Y = 0;
+				for (SizeType io = 0; io < norbital; ++io)  {
+					const RealType sign = (io < norbitalOver2) ? 1 : -1;
+					X2Y += sign*PsimagLite::conj(Xdag(io, ie2))*Ydag(io, ie1);
+				}
+
+				const ComplexOrRealType factor = X2Y/X2X[ie2];
+				for (SizeType io = 0; io < norbital; ++io)
+					Xdag(io, ie1) -= Xdag(io, ie2)*factor;
+			}
+
+			for (SizeType io = 0; io < norbital; ++io)  {
+				const RealType sign = (io < norbitalOver2) ? 1 : -1;
+				X2X[ie1] += sign*PsimagLite::norm(Xdag(io, ie1));
+			}
+		}
+	}
+
+	template<typename T>
+	static PsimagLite::String vectorToString(const std::vector<T>& v)
+	{
+		const SizeType n = v.size();
+		PsimagLite::String str;
+		for (SizeType i = 0; i < n; ++i)
+			str += ttos(v[i]) + " ";
+		return str;
 	}
 
 	const ReciprocalArgs& reciprocalArgs_;
