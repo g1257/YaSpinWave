@@ -3,6 +3,8 @@
 #include "Matrix.h"
 #include "SpaceConnectors.h"
 #include "MapTom.h"
+#include "Angles.h"
+#include "SpinModulus.h"
 
 namespace yasw {
 
@@ -17,12 +19,14 @@ public:
 	typedef typename SpaceConnectorsType::MatrixComplexOrRealType MatrixType;
 	typedef typename SpaceConnectorsType::VectorRealType VectorRealType;
 	typedef typename SpaceConnectorsType::VectorVectorRealType VectorVectorRealType;
-	typedef typename PsimagLite::Vector<ComplexOrRealType>::Type VectorType;
 	typedef PsimagLite::Vector<bool>::Type VectorBoolType;
 	typedef PsimagLite::Matrix<RealType> MatrixRealType;
+	typedef typename PsimagLite::Vector<ComplexOrRealType>::Type VectorType;
+	typedef typename PsimagLite::Vector<MatrixType*>::Type VectorMatrixType;
 	typedef MapTom<ComplexOrRealType> MapTomType;
 	typedef typename MapTomType::VectorIntType VectorIntType;
 	typedef typename MapTomType::RnIndexType RnIndexType;
+	typedef Angles<RealType> AnglesType;
 
 	static VectorRealType matMulVec(const MatrixRealType& m, const VectorRealType& v)
 	{
@@ -231,12 +235,19 @@ public:
 	      sc_(reciprocalArgs_.mfile, pixelSize, verbose),
 	      caseAux_(reciprocalArgs.casefile),
 	      mapTom_(reciprocalArgs_.mapfile),
-	      hs_(reciprocalArgs.hsfile, caseAux_, reciprocalArgs_.nk)
+	      hs_(reciprocalArgs.hsfile, caseAux_, reciprocalArgs_.nk),
+	      a_(reciprocalArgs_.anglesfile, verbose),
+	      spinModulus_(reciprocalArgs.modulusfile, sc_.rows())
 	{}
 
 	void mainLoop(PsimagLite::String& line)
 	{
 		const SizeType norbital = sc_.rows(); // may need to multiply by pixelSize FIXME TODO
+
+		const SizeType nsite = a_.size();
+		MatrixType Vm(nsite, 3);
+		MatrixType Vp(nsite, 3);
+		computeVminVmax(Vm, Vp);
 
 		// original author: Tom B.
 		RealType numImtot(0);
@@ -249,7 +260,6 @@ public:
 			PsimagLite::String kmeshStr = vectorToString(hs_.kMesh(ik));
 			line += kmeshStr + " " + ttos(hs_.klength(ik));
 			//std::cerr<<"q="<<kmesh[ik]<<'\n';
-			VectorRealType xk = matMulVec(caseAux_.xb(), hs_.kMesh(ik));
 
 			//construct <kn1|H|kn2>
 			MatrixType HK(norbital, norbital);
@@ -267,6 +277,9 @@ public:
 			MatrixType Xdag(norbital, norbital - erased);
 			orthogonalize(Xdag, deletedIndices, Ydag);
 			normalize(Xdag, deletedIndices);
+
+			VectorRealType xk = matMulVec(caseAux_.xb(), hs_.kMesh(ik));
+			computeSq(Xdag, E, deletedIndices, xk, Vm, Vp);
 		}
 	}
 
@@ -397,6 +410,82 @@ private:
 		}
 	}
 
+	void computeSq(const MatrixType& Xdag,
+	               const VectorType& E,
+	               const VectorBoolType& deletedIndices,
+	               const VectorRealType& xk,
+	               const MatrixType& Vm,
+	               const MatrixType& Vp)
+	{
+		static const ComplexOrRealType oneComplex = 1;
+		const SizeType norbital = Xdag.rows();
+		const SizeType norbitalOver2 = norbital/2;
+		const SizeType cols = Xdag.cols();
+		VectorMatrixType Sq(cols);
+		VectorType Sqtot(cols);
+		const RealType factor = 1.0/(2.0*mapTom_.unitPerSuper());
+		const RealType normXk = PsimagLite::norm(xk);
+		const RealType factor2 = 1.0/(normXk*normXk);
+
+		SizeType ieTranslated = 0;
+		for (SizeType ie = 0; ie < norbital; ++ie)  {
+			if (deletedIndices[ie]) continue;
+			RealType sign = (PsimagLite::real(E[ie]) < 0) ? -1 : 1;
+			VectorType W(3);
+			for (SizeType io = 0; io < norbitalOver2; ++io) {
+				RealType spin = spinModulus_()[io];
+				for (SizeType ii = 0; ii < 3; ++ii)
+					W[ii] += sign*(Xdag(io, ieTranslated)*Vm(io, ii) -
+					               Xdag(io + norbitalOver2, ieTranslated)*
+					               Vp(io, ii))*sqrt(spin);
+			}
+
+			Sq[ieTranslated] = new MatrixType(3, 3);
+			MatrixType& m = *(Sq[ieTranslated]);
+			for (SizeType a = 0; a < 3; ++a) {
+				for (SizeType b = 0; b < 3; ++b) {
+					m(a, b) = W[a]*PsimagLite::conj(W[b])*factor;
+					if (normXk == 0) continue;
+
+					ComplexOrRealType tmp1 = xk[a]*xk[b]*factor2;
+					ComplexOrRealType tmp2 = (a == b) ? (oneComplex - tmp1) : tmp1;
+
+					Sqtot[ieTranslated] += tmp2*W[a]*PsimagLite::conj(W[b])*factor;
+				}
+			}
+
+			++ieTranslated;
+		}
+	}
+
+	void computeVminVmax(MatrixType& Vm, MatrixType& Vp)
+	{
+		const SizeType nsite = a_.size();
+
+		for (SizeType io = 0; io < nsite; ++io) {
+			MatrixRealType Uinv(3, 3);
+
+			RealType theta = a_.theta(io);
+			RealType phi = a_.phi(io);
+
+			Uinv(0, 0) = cos(theta)*cos(phi);
+			Uinv(1, 0) = cos(theta)*sin(phi);
+			Uinv(2, 0) = -sin(theta);
+			Uinv(0, 1) = -sin(phi);
+			Uinv(1, 1) = cos(phi);
+			Uinv(2,1) = 0;
+
+
+
+			Vp(io, 0) = ComplexOrRealType(Uinv(0, 0), Uinv(0, 1));
+			Vp(io, 1) = ComplexOrRealType(Uinv(1, 0), Uinv(1, 1));
+			Vp(io, 2) = ComplexOrRealType(Uinv(2, 0), Uinv(2, 1));
+			Vm(io, 0) = ComplexOrRealType(Uinv(0, 0), -Uinv(0, 1));
+			Vm(io, 1) = ComplexOrRealType(Uinv(1, 0), -Uinv(1, 1));
+			Vm(io, 2) = ComplexOrRealType(Uinv(2, 0), -Uinv(2, 1));
+		}
+	}
+
 	template<typename T>
 	static PsimagLite::String vectorToString(const std::vector<T>& v)
 	{
@@ -413,6 +502,8 @@ private:
 	CaseAux caseAux_;
 	MapTomType mapTom_;
 	Hs hs_;
+	AnglesType a_;
+	SpinModulus<VectorRealType> spinModulus_;
 };
 
 } // namespace yasw

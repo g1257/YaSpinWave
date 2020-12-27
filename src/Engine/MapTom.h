@@ -67,6 +67,12 @@ public:
 
 	const MatrixRealType& alphaNalphaS() const { return alphaNalphaS_; }
 
+	int unitPerSuper()
+	{
+		throw PsimagLite::RuntimeError("unitPerSuper unimplemented\n");
+		//return abs(det(alphaN_alphaS));
+	}
+
 private:
 
 	VectorRnIndexType vecRnIndex_; // this is now contained instead of inherited
