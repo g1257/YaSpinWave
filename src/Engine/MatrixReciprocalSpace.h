@@ -252,9 +252,9 @@ public:
 		RealType numImtot(0);
 
 		const SizeType nkmesh = hs_.kMeshSize();
-		VectorType E;
-		MatrixType Ydag;
-		MatrixType mvl;
+		VectorType E(norbital);
+		MatrixType Ydag(norbital, norbital);
+		MatrixType mvl(10, 10); //unused
 		for (SizeType ik = 0; ik < nkmesh; ++ik) {
 			PsimagLite::String kmeshStr = vectorToString(hs_.kMesh(ik));
 			line += kmeshStr + " " + ttos(hs_.klength(ik));
