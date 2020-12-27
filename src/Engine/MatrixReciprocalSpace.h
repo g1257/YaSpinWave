@@ -2,6 +2,7 @@
 #define MATRIXRECIPROCALSPACE_H
 #include "Matrix.h"
 #include "SpaceConnectors.h"
+#include "MapTom.h"
 
 namespace yasw {
 
@@ -17,6 +18,7 @@ public:
 	typedef typename SpaceConnectorsType::VectorRealType VectorRealType;
 	typedef typename SpaceConnectorsType::VectorVectorRealType VectorVectorRealType;
 	typedef PsimagLite::Matrix<RealType> MatrixRealType;
+	typedef MapTom<ComplexOrRealType> MapTomType;
 
 	static VectorRealType matMulVec(const MatrixRealType& m, const VectorRealType& v)
 	{
@@ -60,7 +62,6 @@ public:
 		}
 	};
 
-
 	class CaseAux {
 
 	public:
@@ -69,7 +70,7 @@ public:
 		{
 			const SizeType rows = 3;
 			const SizeType cols = 3;
-			MatrixRealType xb(rows, cols);
+			xb_.resize(rows, cols);
 			xbc_.resize(rows, cols);
 
 			if (file.find(".aux") == PsimagLite::String::npos)
@@ -84,23 +85,27 @@ public:
 
 				for (SizeType i = 0; i < rows; ++i)
 					for (SizeType j = 0; j < cols; ++j)
-						fin>>xb(i, j);
+						fin>>xb_(i, j);
 
 				fin.close();
 			}
 
-			inverse(xb);
-			bbc_ = xb*xbc_;
+			MatrixRealType bx = xb_;
+			inverse(bx);
+			bbc_ = bx*xbc_;
 		}
 
 		const MatrixRealType& xbc() const { return xbc_; }
 
 		const MatrixRealType& bbc() const { return bbc_; }
 
+		const MatrixRealType& xb() const { return xb_; }
+
 	private:
 
 		MatrixRealType xbc_;
 		MatrixRealType bbc_;
+		MatrixRealType xb_;
 	};
 
 	class Hs {
@@ -215,52 +220,61 @@ public:
 	      verbose_(verbose),
 	      sc_(reciprocalArgs_.mfile, pixelSize, verbose),
 	      caseAux_(reciprocalArgs.casefile),
+	      mapTom_(reciprocalArgs_.mapfile),
 	      hs_(reciprocalArgs.hsfile, caseAux_, reciprocalArgs_.nk)
 	{}
 
 	void mainLoop()
 	{
-		// original author: Tom B.
-//		RealType numImtot(0);
-//		const SizeType nkmesh = hs_.kMeshSize();
-//		for (SizeType ik = 0; ik < nkmesh; ++ik) {
-//			//fout<<kmesh[ik]<<" "<<klength[ik];
-//			//std::cerr<<"q="<<kmesh[ik]<<'\n';
-//			VectorRealType xk = matMulVec(xb, hs_.kMesh(ik));
+		const SizeType norbital = sc_.rows(); // may need to multiply by pixelSize FIXME TODO
 
-//			//construct <kn1|H|kn2>
-//			MatrixType HK(norbital, norbital);
-//			fillHk(HK);
-//			//other stuff
-//		}
+		// original author: Tom B.
+		RealType numImtot(0);
+
+		const SizeType nkmesh = hs_.kMeshSize();
+		for (SizeType ik = 0; ik < nkmesh; ++ik) {
+			//fout<<kmesh[ik]<<" "<<klength[ik];
+			//std::cerr<<"q="<<kmesh[ik]<<'\n';
+			VectorRealType xk = matMulVec(caseAux_.xb(), hs_.kMesh(ik));
+
+			//construct <kn1|H|kn2>
+			MatrixType HK(norbital, norbital);
+			fillHk(HK, ik);
+			//other stuff
+		}
 	}
 
 private:
 
-	void fillHk(MatrixType& HK) const
+	void fillHk(MatrixType& HK, SizeType ik) const
 	{
-//		const SizeType nsite = sc_.size();
+		const SizeType nsite = sc_.size();
+		const SizeType norbital = HK.rows();
+		const SizeType norbitalOver2 = norbital/2;
+		assert(norbital == HK.cols());
+		assert(norbital == sc_.rows()); // may need to multiply by pixelSize FIXME TODO
 
-//		// original author: Tom B.
-//		for (SizeType ir = 0; ir < nsite; ++ir) {
-//			VectorRealType aR = matMulVec(map_NS.alphaN_alphaS, R[ir]); // aR=aA*AR
-//			for (SizeType io1 = 0; io1 < norbital; ++io1) {
-//				for (SizeType io0 = 0; io0 < norbital; ++io0) {
-//					VectorRealType r0 = map_NS(map_N_S::Rn_index(ivec3d(0,0,0),io0)).first;
-//					VectorRealType r1=map_NS(map_N_S::Rn_index(ivec3d(0,0,0),io1)).first;
-//					RealType arg = 2.*PI*hs_.kMesh(ik)*(r0-r1-aR);
-//					ComplexOrRealType phase(cos(arg), sin(arg));
-//					const RealType sign = (io0 < norbitalOver2) ? 1 : -1;
-//					HK(io1, io0) += sign*phase*sc_(io1, io0, ir);
-//				}
-//			}
-//		}
+		// original author: Tom B.
+		for (SizeType ir = 0; ir < nsite; ++ir) {
+			VectorRealType aR = matMulVec(mapTom_.alphaNalphaS(), sc_.nvector(ir)); // aR=aA*AR
+			for (SizeType io1 = 0; io1 < norbital; ++io1) {
+				for (SizeType io0 = 0; io0 < norbital; ++io0) {
+					VectorRealType r0 = map_NS(map_N_S::Rn_index(ivec3d(0,0,0),io0)).first;
+					VectorRealType r1=map_NS(map_N_S::Rn_index(ivec3d(0,0,0),io1)).first;
+					RealType arg = 2*M_PI*hs_.kMesh(ik)*(r0-r1-aR);
+					ComplexOrRealType phase(cos(arg), sin(arg));
+					const RealType sign = (io0 < norbitalOver2) ? 1 : -1;
+					HK(io1, io0) += sign*phase*sc_(io1, io0, ir);
+				}
+			}
+		}
 	}
 
 	const ReciprocalArgs& reciprocalArgs_;
 	bool verbose_;
 	SpaceConnectorsType sc_;
 	CaseAux caseAux_;
+	MapTomType mapTom_;
 	Hs hs_;
 };
 
