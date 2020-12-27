@@ -16,6 +16,8 @@ public:
 	typedef PsimagLite::Matrix<ComplexOrRealType> MatrixComplexOrRealType;
 	typedef typename PsimagLite::Vector<MatrixComplexOrRealType>::Type
 	VectorComplexOrRealMatrixType;
+	typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
+	typedef typename PsimagLite::Vector<VectorRealType>::Type VectorVectorRealType;
 
 	SpaceConnectors(PsimagLite::String file, SizeType pixel, bool verbose)
 	    : rows_(0), pixelSize_(pixel), centralCellIndex_(0)
@@ -62,15 +64,16 @@ public:
 		if (n >= 100)
 			err("SpaceConnectors:: too many\n");
 
-		nmatrix_.resize(n, 3);
+		nmatrix_.resize(n);
 		data_.resize(n);
 		bool centralSeen = false;
 
 		for (SizeType i = 0; i < n; ++i) {
 			bool flag = true;
+			nmatrix_[i].resize(3);
 			for (SizeType j = 0; j < 3; ++j) {
-				fin>>nmatrix_(i,j);
-				if (nmatrix_(i,j) != 0) flag = false;
+				fin>>nmatrix_[i][j];
+				if (nmatrix_[i][j] != 0) flag = false;
 			}
 
 			if (flag) {
@@ -105,15 +108,9 @@ public:
 				}
 			}
 
-			MatrixRealType nmatrix(n + 1, 3);
-			for (SizeType i = 0; i < n; ++i)
-				for (SizeType j = 0; j < 3; ++j)
-					nmatrix(i,j) = nmatrix_(i,j);
+			VectorRealType cvector(3);
 
-			for (SizeType j = 0; j < 3; ++j)
-				nmatrix(n,j) = 0.0;
-
-			nmatrix_ = nmatrix;
+			nmatrix_.push_back(cvector);
 			centralCellIndex_ = n;
 		}
 
@@ -124,15 +121,6 @@ public:
 	{
 		assert(ind < size());
 		return data_[ind](i, j);
-	}
-
-	PsimagLite::String nvector(SizeType ind) const
-	{
-		assert(ind < nmatrix_.n_row());
-		PsimagLite::String str("");
-		for (SizeType i = 0; i < nmatrix_.n_col(); ++i)
-			str += ttos(nmatrix_(ind,i)) + " ";
-		return str;
 	}
 
 	bool isCentralCell(SizeType ind) const
@@ -152,9 +140,10 @@ public:
 		return data_[ind];
 	}
 
-	const RealType& nmatrix(SizeType ind, SizeType i) const
+	const VectorRealType& nvector(SizeType ind) const
 	{
-		return nmatrix_(ind, i);
+		assert(ind < nmatrix_.size());
+		return nmatrix_[ind];
 	}
 
 private:
@@ -167,7 +156,7 @@ private:
 		}
 	}
 
-	MatrixRealType nmatrix_;
+	VectorVectorRealType nmatrix_;
 	VectorComplexOrRealMatrixType data_;
 	SizeType rows_;
 	SizeType pixelSize_;

@@ -36,7 +36,7 @@ public:
 		assert(matrixSpace_.size() > 0);
 		os<<matrixSpace_.size()<<" "<<matrixSpace_(0).n_row()<<"\n";
 		for (SizeType i = 0; i < matrixSpace_.size(); ++i) {
-			os<<matrixSpace_.nvector(i)<<"\n";
+			os<<matrixSpace_.nvectorToString(i)<<"\n";
 			printMatrix(os,matrixSpace_(i),1);
 		}
 	}
@@ -53,7 +53,7 @@ public:
 		assert(matrixSpace_.size() > 0);
 		os<<matrixSpace_.size()<<" "<<matrixSpace_(0).n_row()<<"\n";
 		for (SizeType i = 0; i < matrixSpace_.size(); ++i) {
-			os<<matrixSpace_.nvector(i)<<"\n";
+			os<<matrixSpace_.nvectorToString(i)<<"\n";
 			printMatrix(os,matrixSpace_(i), 1);
 		}
 	}

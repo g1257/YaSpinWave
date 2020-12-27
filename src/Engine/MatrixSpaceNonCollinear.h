@@ -67,9 +67,9 @@ public:
 		return data_[i];
 	}
 
-	PsimagLite::String nvector(SizeType ind) const
+	PsimagLite::String nvectorToString(SizeType ind) const
 	{
-		return common_.nvector(ind);
+		return common_.nvectorToString(ind);
 	}
 
 private:

@@ -32,9 +32,14 @@ public:
 
 	SizeType size() const { return sc_.size(); }
 
-	PsimagLite::String nvector(SizeType ind) const
+	PsimagLite::String nvectorToString(SizeType ind) const
 	{
-		return sc_.nvector(ind);
+		const VectorRealType& v = sc_.nvector(ind);
+		const SizeType nsize = v.size();
+		PsimagLite::String str("");
+		for (SizeType i = 0; i < nsize; ++i)
+			str += ttos(v[i]) + " ";
+		return str;
 	}
 
 	SizeType rows() const { return sc_.rows(); }

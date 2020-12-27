@@ -334,12 +334,7 @@ private:
 
 	ComplexType getUnitPhase(SizeType ind) const
 	{
-		VectorRealType nvector(3,0.0);
-		for (SizeType i = 0; i < 3; ++i) {
-			nvector[i] = sc_.nmatrix(ind,i);
-		}
-
-		RealType tmp = scalarProduct(nvector,qvector_);
+		RealType tmp = scalarProduct(sc_.nvector(ind), qvector_);
 		return ComplexType(cos(tmp),sin(tmp));
 	}
 
