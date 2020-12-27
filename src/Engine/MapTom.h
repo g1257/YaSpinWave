@@ -16,6 +16,20 @@ public:
 
 	class RnIndex {
 
+	public:
+
+		RnIndex(const VectorIntType& v, SizeType second)
+		    : v_(v), second_(second)
+		{}
+
+		const VectorIntType& first() const { return v_; }
+
+		SizeType second() const { return second_; }
+
+	private:
+
+		VectorIntType v_;
+		SizeType second_;
 	};
 
 	typedef RnIndex RnIndexType;
@@ -31,10 +45,27 @@ public:
 		if(RN.second() >= vecRnIndex_.size())
 			err("RnIndexType::operator(): N=" + ttos(RN.second()) + " is not part of the map.\n");
 
-		VectorRealType vecTmp = vecRnIndex_[RN.second()].first()+alphaNalphaS_*RN.first();
+		const VectorIntType& v1 = vecRnIndex_[RN.second()].first();
+		const VectorIntType& v2 = RN.first();
+		const SizeType rows = alphaNalphaS_.rows();
+		const SizeType cols = alphaNalphaS_.cols();
+		assert(v2.size() == v1.size());
+		assert(cols == v1.size());
+		VectorIntType vecTmp(rows);
+		for (SizeType i = 0; i < rows; ++i) {
+			RealType sum = 0;
+			for (SizeType j = 0; j < cols; ++j) {
+				sum += v1[j] + alphaNalphaS_(i, j)*v2[j];
+			}
+
+			vecTmp[i] = static_cast<int>(sum);
+		}
+
 		SizeType index = vecRnIndex_[RN.second()].second();
 		return RnIndexType(vecTmp, index);
 	}
+
+	const MatrixRealType& alphaNalphaS() const { return alphaNalphaS_; }
 
 private:
 

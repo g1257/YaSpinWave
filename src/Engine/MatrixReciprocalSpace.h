@@ -231,7 +231,7 @@ public:
 		const SizeType norbital = sc_.rows(); // may need to multiply by pixelSize FIXME TODO
 
 		// original author: Tom B.
-		RealType numImtot(0);
+		//		RealType numImtot(0);
 
 		const SizeType nkmesh = hs_.kMeshSize();
 		for (SizeType ik = 0; ik < nkmesh; ++ik) {
@@ -257,14 +257,21 @@ private:
 		assert(norbital == sc_.rows()); // may need to multiply by pixelSize FIXME TODO
 
 		// original author: Tom B.
-		VectorIntType vzero(0, 0, 0);
+		VectorIntType vzero = {0, 0, 0};
 		for (SizeType ir = 0; ir < nsite; ++ir) {
 			VectorRealType aR = matMulVec(mapTom_.alphaNalphaS(), sc_.nvector(ir)); // aR=aA*AR
 			for (SizeType io1 = 0; io1 < norbital; ++io1) {
 				for (SizeType io0 = 0; io0 < norbital; ++io0) {
-					VectorRealType r0 = mapTom_(RnIndexType(vzero, io0)).first();
-					VectorRealType r1 = mapTom_(RnIndexType(vzero, io1)).first();
-					RealType arg = 2*M_PI*hs_.kMesh(ik)*(r0-r1-aR);
+					VectorIntType r0 = mapTom_(RnIndexType(vzero, io0)).first();
+					VectorIntType r1 = mapTom_(RnIndexType(vzero, io1)).first();
+
+					RealType arg = 0;
+					const SizeType nrsize = r0.size();
+					assert(nrsize == r1.size());
+					assert(nrsize == aR.size());
+					for (SizeType ii = 0; ii < nrsize; ++ii)
+						arg += 2*M_PI*hs_.kMesh(ik)[ii]*(r0[ii] - r1[ii] - aR[ii]);
+
 					ComplexOrRealType phase(cos(arg), sin(arg));
 					const RealType sign = (io0 < norbitalOver2) ? 1 : -1;
 					HK(io1, io0) += sign*phase*sc_(io1, io0, ir);
