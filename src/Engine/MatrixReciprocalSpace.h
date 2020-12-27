@@ -189,8 +189,7 @@ public:
 
 			//generate kmesh,klenght (taken from Tom B.)
 			RealType klengthtmp = 0;
-			const SizeType cols = kbegin_.size();
-			assert(cols == 3);
+			const SizeType cols = 3;
 			VectorRealType tmpVec(cols);
 			for (SizeType i = 0; i < npanel; ++i) {
 				RealType panellenght = PsimagLite::norm(matMulVec(caseAux.xbc(), kdiff(i)));
@@ -237,7 +236,7 @@ public:
 	      mapTom_(reciprocalArgs_.mapfile),
 	      hs_(reciprocalArgs.hsfile, caseAux_, reciprocalArgs_.nk),
 	      a_(reciprocalArgs_.anglesfile, verbose),
-	      spinModulus_(reciprocalArgs.modulusfile, sc_.rows())
+	      spinModulus_(reciprocalArgs.modulusfile, a_.size())
 	{}
 
 	void mainLoop(PsimagLite::String& line)

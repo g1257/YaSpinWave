@@ -35,9 +35,30 @@ public:
 	typedef RnIndex RnIndexType;
 	typedef typename PsimagLite::Vector<RnIndex>::Type VectorRnIndexType;
 
-	MapTom(PsimagLite::String file)
+	MapTom(PsimagLite::String file) : alphaNalphaS_(3, 3), tauS_(3)
 	{
-		err("MapTom: Needs to read file\n");
+		const SizeType rows = 3;
+		const SizeType cols = 3;
+		std::ifstream fin(file.c_str());
+		for (SizeType i = 0; i < rows; ++i)
+			for (SizeType j = 0; j < cols; ++j)
+				fin>>alphaNalphaS_(i, j);
+
+		for (SizeType i = 0; i < rows; ++i)
+			fin>>tauS_[i];
+
+		SizeType value = 0;
+		VectorIntType v(rows);
+		while (fin.good()) {
+
+			for (SizeType i = 0; i < rows; ++i)
+				fin>>v[i];
+
+			if (!fin.good()) break;
+
+			fin>>value;
+			vecRnIndex_.push_back(RnIndex(v, value));
+		}
 	}
 
 	RnIndexType operator()(const RnIndexType& RN) const
