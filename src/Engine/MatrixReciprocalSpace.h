@@ -17,6 +17,8 @@ public:
 	typedef typename SpaceConnectorsType::MatrixComplexOrRealType MatrixType;
 	typedef typename SpaceConnectorsType::VectorRealType VectorRealType;
 	typedef typename SpaceConnectorsType::VectorVectorRealType VectorVectorRealType;
+	typedef typename PsimagLite::Vector<ComplexOrRealType>::Type VectorType;
+	typedef PsimagLite::Vector<bool>::Type VectorBoolType;
 	typedef PsimagLite::Matrix<RealType> MatrixRealType;
 	typedef MapTom<ComplexOrRealType> MapTomType;
 	typedef typename MapTomType::VectorIntType VectorIntType;
@@ -231,9 +233,12 @@ public:
 		const SizeType norbital = sc_.rows(); // may need to multiply by pixelSize FIXME TODO
 
 		// original author: Tom B.
-		//		RealType numImtot(0);
+		RealType numImtot(0);
 
 		const SizeType nkmesh = hs_.kMeshSize();
+		VectorType E;
+		MatrixType Ydag;
+		MatrixType mvl;
 		for (SizeType ik = 0; ik < nkmesh; ++ik) {
 			//fout<<kmesh[ik]<<" "<<klength[ik];
 			//std::cerr<<"q="<<kmesh[ik]<<'\n';
@@ -242,7 +247,12 @@ public:
 			//construct <kn1|H|kn2>
 			MatrixType HK(norbital, norbital);
 			fillHk(HK, ik);
-			//other stuff
+
+			//diagonalize <kn1|H|kn2>
+			geev('N', 'V', HK, E, mvl, Ydag); // mvl will be ignored apparently
+
+			VectorBoolType deletedIndices(E.size(), false);
+			numImtot += cutoffImE(deletedIndices, E);
 		}
 	}
 
@@ -278,6 +288,25 @@ private:
 				}
 			}
 		}
+	}
+
+	SizeType cutoffImE(VectorBoolType& deletedIndices, const VectorType& E) const
+	{
+		// taken from Tom B.
+		//rm |ImE|>cutImE
+		// don't actually remove, just mark them
+		const SizeType norbital = E.size();
+		const RealType cutImE = reciprocalArgs_.cutoff;
+		SizeType erased = 0;
+		for (SizeType ie = 0; ie < norbital; ++ie) {
+			if (fabs(PsimagLite::imag(E[ie])) <= cutImE) continue;
+			++erased;
+			deletedIndices[ie] = true;
+		}
+
+		//log numImE
+		std::cerr<<"number of ImE="<<erased<<'\n';
+		return erased;
 	}
 
 	const ReciprocalArgs& reciprocalArgs_;
