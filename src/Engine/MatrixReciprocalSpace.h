@@ -19,6 +19,8 @@ public:
 	typedef typename SpaceConnectorsType::VectorVectorRealType VectorVectorRealType;
 	typedef PsimagLite::Matrix<RealType> MatrixRealType;
 	typedef MapTom<ComplexOrRealType> MapTomType;
+	typedef typename MapTomType::VectorIntType VectorIntType;
+	typedef typename MapTomType::RnIndexType RnIndexType;
 
 	static VectorRealType matMulVec(const MatrixRealType& m, const VectorRealType& v)
 	{
@@ -255,12 +257,13 @@ private:
 		assert(norbital == sc_.rows()); // may need to multiply by pixelSize FIXME TODO
 
 		// original author: Tom B.
+		VectorIntType vzero(0, 0, 0);
 		for (SizeType ir = 0; ir < nsite; ++ir) {
 			VectorRealType aR = matMulVec(mapTom_.alphaNalphaS(), sc_.nvector(ir)); // aR=aA*AR
 			for (SizeType io1 = 0; io1 < norbital; ++io1) {
 				for (SizeType io0 = 0; io0 < norbital; ++io0) {
-					VectorRealType r0 = map_NS(map_N_S::Rn_index(ivec3d(0,0,0),io0)).first;
-					VectorRealType r1=map_NS(map_N_S::Rn_index(ivec3d(0,0,0),io1)).first;
+					VectorRealType r0 = mapTom_(RnIndexType(vzero, io0)).first();
+					VectorRealType r1 = mapTom_(RnIndexType(vzero, io1)).first();
 					RealType arg = 2*M_PI*hs_.kMesh(ik)*(r0-r1-aR);
 					ComplexOrRealType phase(cos(arg), sin(arg));
 					const RealType sign = (io0 < norbitalOver2) ? 1 : -1;
