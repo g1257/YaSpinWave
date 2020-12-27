@@ -64,16 +64,16 @@ public:
 		if (n >= 100)
 			err("SpaceConnectors:: too many\n");
 
-		nmatrix_.resize(n);
+		rvector_.resize(n);
 		data_.resize(n);
 		bool centralSeen = false;
 
 		for (SizeType i = 0; i < n; ++i) {
 			bool flag = true;
-			nmatrix_[i].resize(3);
+			rvector_[i].resize(3);
 			for (SizeType j = 0; j < 3; ++j) {
-				fin>>nmatrix_[i][j];
-				if (nmatrix_[i][j] != 0) flag = false;
+				fin>>rvector_[i][j];
+				if (rvector_[i][j] != 0) flag = false;
 			}
 
 			if (flag) {
@@ -110,7 +110,7 @@ public:
 
 			VectorRealType cvector(3);
 
-			nmatrix_.push_back(cvector);
+			rvector_.push_back(cvector);
 			centralCellIndex_ = n;
 		}
 
@@ -142,8 +142,8 @@ public:
 
 	const VectorRealType& nvector(SizeType ind) const
 	{
-		assert(ind < nmatrix_.size());
-		return nmatrix_[ind];
+		assert(ind < rvector_.size());
+		return rvector_[ind];
 	}
 
 private:
@@ -156,7 +156,7 @@ private:
 		}
 	}
 
-	VectorVectorRealType nmatrix_;
+	VectorVectorRealType rvector_;
 	VectorComplexOrRealMatrixType data_;
 	SizeType rows_;
 	SizeType pixelSize_;
