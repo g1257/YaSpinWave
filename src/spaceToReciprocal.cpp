@@ -89,6 +89,11 @@ int main(int argc, char** argv)
 
 	PsimagLite::String str;
 	matrixReciprocal.mainLoop(str);
+
+	std::ofstream fout(reciprocalArgs.outputfile);
+	fout<<str;
+	fout.close();
+
 	return 0;
 }
 

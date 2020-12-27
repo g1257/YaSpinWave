@@ -274,12 +274,23 @@ public:
 
 			printRe(line, deletedIndices, E);
 
+			const SizeType cols = norbital - erased;
 			MatrixType Xdag(norbital, norbital - erased);
 			orthogonalize(Xdag, deletedIndices, Ydag);
 			normalize(Xdag, deletedIndices);
 
 			VectorRealType xk = matMulVec(caseAux_.xb(), hs_.kMesh(ik));
-			computeSq(Xdag, E, deletedIndices, xk, Vm, Vp);
+			VectorType Sqtot(cols);
+			computeSq(Sqtot, Xdag, E, deletedIndices, xk, Vm, Vp);
+
+			for (SizeType ie = 0; ie < cols; ++ie)
+				line += " " + ttos(PsimagLite::real(Sqtot[ie]));
+
+			for (SizeType ie = cols; ie < norbital; ++ie)
+				line += " 0";
+			line += "\n";
+
+			std::cerr<<"\n";
 		}
 	}
 
@@ -410,7 +421,8 @@ private:
 		}
 	}
 
-	void computeSq(const MatrixType& Xdag,
+	void computeSq(VectorType& Sqtot,
+	               const MatrixType& Xdag,
 	               const VectorType& E,
 	               const VectorBoolType& deletedIndices,
 	               const VectorRealType& xk,
@@ -420,9 +432,8 @@ private:
 		static const ComplexOrRealType oneComplex = 1;
 		const SizeType norbital = Xdag.rows();
 		const SizeType norbitalOver2 = norbital/2;
-		const SizeType cols = Xdag.cols();
-		VectorMatrixType Sq(cols);
-		VectorType Sqtot(cols);
+		//const SizeType cols = Xdag.cols();
+		//VectorMatrixType Sq(cols);
 		const RealType factor = 1.0/(2.0*mapTom_.unitPerSuper());
 		const RealType normXk = PsimagLite::norm(xk);
 		const RealType factor2 = 1.0/(normXk*normXk);
@@ -440,11 +451,11 @@ private:
 					               Vp(io, ii))*sqrt(spin);
 			}
 
-			Sq[ieTranslated] = new MatrixType(3, 3);
-			MatrixType& m = *(Sq[ieTranslated]);
+			//Sq[ieTranslated] = new MatrixType(3, 3);
+			//MatrixType& m = *(Sq[ieTranslated]);
 			for (SizeType a = 0; a < 3; ++a) {
 				for (SizeType b = 0; b < 3; ++b) {
-					m(a, b) = W[a]*PsimagLite::conj(W[b])*factor;
+					//m(a, b) = W[a]*PsimagLite::conj(W[b])*factor;
 					if (normXk == 0) continue;
 
 					ComplexOrRealType tmp1 = xk[a]*xk[b]*factor2;
