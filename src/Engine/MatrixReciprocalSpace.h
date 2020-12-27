@@ -259,9 +259,14 @@ public:
 			geev('N', 'V', HK, E, mvl, Ydag); // mvl will be ignored apparently
 
 			VectorBoolType deletedIndices(E.size(), false);
-			numImtot += cutoffImE(deletedIndices, E);
+			const SizeType erased = cutoffImE(deletedIndices, E);
+			numImtot += erased;
 
 			printRe(line, deletedIndices, E);
+
+			MatrixType Xdag(norbital, norbital - erased);
+			orthogonalize(Xdag, deletedIndices, Ydag);
+			normalize(Xdag, deletedIndices);
 		}
 	}
 
@@ -336,36 +341,59 @@ private:
 		}
 	}
 
-	void orthogonalize(SizeType erased, const VectorType& E, const MatrixType& Ydag) const
+	void orthogonalize(MatrixType& Xdag,
+	                   const VectorBoolType& deletedIndices,
+	                   const MatrixType& Ydag) const
 	{
 		// taken from Tom B.
-		const SizeType norbital = E.size();
+		const SizeType norbital = Xdag.rows();
 		const SizeType norbitalOver2 = norbital/2;
-		assert(norbital > erased);
-		MatrixType Xdag(norbital, norbital - erased);
 		const SizeType cols = Xdag.cols();
 		VectorRealType X2X(cols);
-		for (SizeType ie1 = 0; ie1 < cols; ++ie1) {
-
+		SizeType ie1Translated = 0;
+		for (SizeType ie1 = 0; ie1 < norbital; ++ie1) {
+			if (deletedIndices[ie1]) continue;
 			for(SizeType io = 0; io < norbital; ++io)
-				Xdag(io, ie1) = Ydag(io, ie1);
+				Xdag(io, ie1Translated) = Ydag(io, ie1);
 
-			for(SizeType ie2 = 0; ie2 < ie1; ++ie2) {
+			for(SizeType ie2Translated = 0; ie2Translated < ie1; ++ie2Translated) {
 				ComplexOrRealType X2Y = 0;
 				for (SizeType io = 0; io < norbital; ++io)  {
 					const RealType sign = (io < norbitalOver2) ? 1 : -1;
-					X2Y += sign*PsimagLite::conj(Xdag(io, ie2))*Ydag(io, ie1);
+					X2Y += sign*PsimagLite::conj(Xdag(io, ie2Translated))*Ydag(io, ie1);
 				}
 
-				const ComplexOrRealType factor = X2Y/X2X[ie2];
+				const ComplexOrRealType factor = X2Y/X2X[ie2Translated];
 				for (SizeType io = 0; io < norbital; ++io)
-					Xdag(io, ie1) -= Xdag(io, ie2)*factor;
+					Xdag(io, ie1Translated) -= Xdag(io, ie2Translated)*factor;
 			}
 
 			for (SizeType io = 0; io < norbital; ++io)  {
 				const RealType sign = (io < norbitalOver2) ? 1 : -1;
-				X2X[ie1] += sign*PsimagLite::norm(Xdag(io, ie1));
+				X2X[ie1Translated] += sign*PsimagLite::norm(Xdag(io, ie1Translated));
 			}
+
+			++ie1Translated;
+		}
+
+	}
+
+	void normalize(MatrixType& Xdag, const VectorBoolType& deletedIndices) const
+	{
+		const SizeType norbital = Xdag.rows();
+		const SizeType norbitalOver2 = norbital/2;
+
+		for (SizeType ie = 0; ie < norbital; ++ie)  {
+			if (deletedIndices[ie]) continue;
+			ComplexOrRealType XNX = 0;
+			for (SizeType io = 0; io < norbital; ++io)  {
+				const RealType sign = (io < norbitalOver2) ? 1 : -1;
+				XNX += sign * PsimagLite::norm(Xdag(io, ie));
+			}
+
+			ComplexOrRealType factor = 1.0/sqrt(XNX);
+			for (SizeType io = 0; io < norbital; ++io)
+				Xdag(io, ie) = Xdag(io, ie)*factor;;
 		}
 	}
 
