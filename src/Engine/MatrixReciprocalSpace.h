@@ -243,6 +243,8 @@ public:
 	{
 		const SizeType norbital = sc_.rows(); // may need to multiply by pixelSize FIXME TODO
 
+		line = lineHeader(norbital);
+
 		const SizeType nsite = a_.size();
 		MatrixType Vm(nsite, 3);
 		MatrixType Vp(nsite, 3);
@@ -494,6 +496,18 @@ private:
 			Vm(io, 1) = ComplexOrRealType(Uinv(1, 0), -Uinv(1, 1));
 			Vm(io, 2) = ComplexOrRealType(Uinv(2, 0), -Uinv(2, 1));
 		}
+	}
+
+	static PsimagLite::String lineHeader(SizeType norbital)
+	{
+		PsimagLite::String str("b0 b1 b2 k_length");
+		for (SizeType i = 0; i < norbital; ++i)
+			str += " bandJ" + ttos(i);
+
+		for (SizeType i = 0; i < norbital; ++i)
+			str += " ReStotJ" + ttos(i);
+		str += " \n";
+		return str;
 	}
 
 	template<typename T>

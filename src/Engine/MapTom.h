@@ -90,11 +90,20 @@ public:
 
 	int unitPerSuper()
 	{
-		throw PsimagLite::RuntimeError("unitPerSuper unimplemented\n");
-		//return abs(det(alphaN_alphaS));
+		return fabs(det(alphaNalphaS_));
 	}
 
 private:
+
+	static RealType det(const MatrixRealType& m)
+	{
+     return -m(0, 2)*m(1, 1)*m(2, 0)+
+	         m(0, 1)*m(1, 2)*m(2, 0)+
+	         m(0, 2)*m(1, 0)*m(2, 1)-
+	         m(0, 0)*m(1, 2)*m(2, 1)-
+	         m(0, 1)*m(1, 0)*m(2, 2)+
+	         m(0, 0)*m(1, 1)*m(2, 2);
+	}
 
 	VectorRnIndexType vecRnIndex_; // this is now contained instead of inherited
 	MatrixRealType alphaNalphaS_;
