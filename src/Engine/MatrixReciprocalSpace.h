@@ -257,8 +257,8 @@ public:
 		VectorType E(norbital);
 		MatrixType Ydag(norbital, norbital);
 		MatrixType mvl(10, 10); //unused
-		PsimagLite::String hkOut = "hk.txt";
-		unlink(hkOut.c_str());
+		PsimagLite::String matrixOut = "matrix.txt";
+		unlink(matrixOut.c_str());
 		for (SizeType ik = 0; ik < nkmesh; ++ik) {
 			PsimagLite::String kmeshStr = vectorToString(hs_.kMesh(ik));
 			line += kmeshStr + " " + ttos(hs_.klength(ik));
@@ -267,7 +267,7 @@ public:
 			//construct <kn1|H|kn2>
 			MatrixType HK(norbital, norbital);
 			fillHk(HK, ik);
-			writeHk(HK, hkOut);
+			//writeMatrix(HK, matrixOut);
 
 			//diagonalize <kn1|H|kn2>
 			geev('N', 'V', HK, E, mvl, Ydag); // mvl will be ignored apparently
@@ -293,8 +293,6 @@ public:
 			for (SizeType ie = cols; ie < norbital; ++ie)
 				line += " 0";
 			line += "\n";
-
-			//std::cerr<<"\n";
 		}
 	}
 
@@ -403,7 +401,6 @@ private:
 
 			++ie1Translated;
 		}
-
 	}
 
 	void normalize(MatrixType& Xdag, const VectorBoolType& deletedIndices) const
@@ -501,7 +498,8 @@ private:
 		}
 	}
 
-	void writeHk(const MatrixType& HK, PsimagLite::String hkOut) const
+	// only for debugging
+	static void writeMatrix(const MatrixType& HK, PsimagLite::String hkOut)
 	{
 		const SizeType rows = HK.rows();
 		const SizeType cols = HK.cols();
@@ -515,6 +513,23 @@ private:
 				fout<<val<<" ";
 			}
 			fout<<"\n";
+		}
+
+		fout<<"\n\n";
+		fout.close();
+	}
+
+	// only for debugging
+	static void writeVector(const VectorType& E, PsimagLite::String hkOut)
+	{
+		const SizeType n = E.size();
+
+		std::ofstream fout(hkOut.c_str(), std::ios::app);
+
+		for (SizeType i = 0; i < n; ++i) {
+			ComplexOrRealType val = E[i];
+			if (fabs(PsimagLite::imag(val)) < 1e-6) val = ComplexOrRealType(PsimagLite::real(val), 0);
+			fout<<val<<" ";
 		}
 
 		fout<<"\n\n";

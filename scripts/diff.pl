@@ -6,7 +6,7 @@ use utf8;
 
 my ($file1, $file2, $upto, $eps) = @ARGV;
 defined($file2) or die "USAGE: file1 file2 [upto eps=1e-5]\n";
-defined($eps) or $eps = 1e-5;
+defined($eps) or $eps = 1e-4;
 my @a1 = loadFile($file1);
 my @a2 = loadFile($file2);
 
@@ -44,7 +44,7 @@ sub diffOf
 		$m = $upto if (defined($upto));
 		#($m1 == $m2) or die "$0: Number of cols different in row $i\n";
 		for (my $j = 0; $j < $m; ++$j) {
-			my $val = abs($ptr1->[$j]) - abs($ptr2->[$j]);
+			my $val = abs($ptr1->[$j] - $ptr2->[$j]);
 			$val = 0 if ($val < $eps);
 
 			print "$val ";
