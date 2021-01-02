@@ -76,10 +76,10 @@ public:
 		for (SizeType i = 0; i < rows; ++i) {
 			RealType sum = 0;
 			for (SizeType j = 0; j < cols; ++j) {
-				sum += v1[j] + alphaNalphaS_(i, j)*v2[j];
+				sum += alphaNalphaS_(i, j)*v2[j];
 			}
 
-			vecTmp[i] = static_cast<int>(sum);
+			vecTmp[i] = static_cast<int>(sum) + v1[i];
 		}
 
 		SizeType index = vecRnIndex_[RN.second()].second();

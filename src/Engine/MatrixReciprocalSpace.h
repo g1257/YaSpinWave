@@ -257,6 +257,8 @@ public:
 		VectorType E(norbital);
 		MatrixType Ydag(norbital, norbital);
 		MatrixType mvl(10, 10); //unused
+		PsimagLite::String hkOut = "hk.txt";
+		unlink(hkOut.c_str());
 		for (SizeType ik = 0; ik < nkmesh; ++ik) {
 			PsimagLite::String kmeshStr = vectorToString(hs_.kMesh(ik));
 			line += kmeshStr + " " + ttos(hs_.klength(ik));
@@ -265,6 +267,7 @@ public:
 			//construct <kn1|H|kn2>
 			MatrixType HK(norbital, norbital);
 			fillHk(HK, ik);
+			writeHk(HK, hkOut);
 
 			//diagonalize <kn1|H|kn2>
 			geev('N', 'V', HK, E, mvl, Ydag); // mvl will be ignored apparently
@@ -284,11 +287,11 @@ public:
 			VectorType Sqtot(cols);
 			computeSq(Sqtot, Xdag, E, deletedIndices, xk, Vm, Vp);
 
-//			for (SizeType ie = 0; ie < cols; ++ie)
-//				line += " " + ttos(PsimagLite::real(Sqtot[ie]));
+			for (SizeType ie = 0; ie < cols; ++ie)
+				line += " " + ttos(PsimagLite::real(Sqtot[ie]));
 
-//			for (SizeType ie = cols; ie < norbital; ++ie)
-//				line += " 0";
+			for (SizeType ie = cols; ie < norbital; ++ie)
+				line += " 0";
 			line += "\n";
 
 			//std::cerr<<"\n";
@@ -407,18 +410,20 @@ private:
 	{
 		const SizeType norbital = Xdag.rows();
 		const SizeType norbitalOver2 = norbital/2;
-
+		SizeType ie1Translated = 0;
 		for (SizeType ie = 0; ie < norbital; ++ie)  {
 			if (deletedIndices[ie]) continue;
 			ComplexOrRealType XNX = 0;
 			for (SizeType io = 0; io < norbital; ++io)  {
 				const RealType sign = (io < norbitalOver2) ? 1 : -1;
-				XNX += sign * PsimagLite::norm(Xdag(io, ie));
+				XNX += sign * PsimagLite::norm(Xdag(io, ie1Translated));
 			}
 
 			ComplexOrRealType factor = 1.0/sqrt(XNX);
 			for (SizeType io = 0; io < norbital; ++io)
-				Xdag(io, ie) = Xdag(io, ie)*factor;;
+				Xdag(io, ie1Translated) *= factor;
+
+			++ie1Translated;
 		}
 	}
 
@@ -442,7 +447,7 @@ private:
 		SizeType ieTranslated = 0;
 		for (SizeType ie = 0; ie < norbital; ++ie)  {
 			if (deletedIndices[ie]) continue;
-			RealType sign = (PsimagLite::real(E[ie]) < 0) ? -1 : 1;
+			RealType sign = (PsimagLite::real(E[ieTranslated]) < 0) ? -1 : 1;
 			VectorType W(3);
 			for (SizeType io = 0; io < norbitalOver2; ++io) {
 				RealType spin = spinModulus_()[io];
@@ -485,9 +490,7 @@ private:
 			Uinv(2, 0) = -sin(theta);
 			Uinv(0, 1) = -sin(phi);
 			Uinv(1, 1) = cos(phi);
-			Uinv(2,1) = 0;
-
-
+			Uinv(2, 1) = 0;
 
 			Vp(io, 0) = ComplexOrRealType(Uinv(0, 0), Uinv(0, 1));
 			Vp(io, 1) = ComplexOrRealType(Uinv(1, 0), Uinv(1, 1));
@@ -496,6 +499,26 @@ private:
 			Vm(io, 1) = ComplexOrRealType(Uinv(1, 0), -Uinv(1, 1));
 			Vm(io, 2) = ComplexOrRealType(Uinv(2, 0), -Uinv(2, 1));
 		}
+	}
+
+	void writeHk(const MatrixType& HK, PsimagLite::String hkOut) const
+	{
+		const SizeType rows = HK.rows();
+		const SizeType cols = HK.cols();
+
+		std::ofstream fout(hkOut.c_str(), std::ios::app);
+
+		for (SizeType i = 0; i < rows; ++i) {
+			for (SizeType j = 0; j < cols; ++j) {
+				ComplexOrRealType val = HK(i, j);
+				if (PsimagLite::norm(val) < 1e-6) val = 0;
+				fout<<val<<" ";
+			}
+			fout<<"\n";
+		}
+
+		fout<<"\n\n";
+		fout.close();
 	}
 
 	static PsimagLite::String lineHeader(SizeType norbital)
