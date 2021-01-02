@@ -284,14 +284,14 @@ public:
 			VectorType Sqtot(cols);
 			computeSq(Sqtot, Xdag, E, deletedIndices, xk, Vm, Vp);
 
-			for (SizeType ie = 0; ie < cols; ++ie)
-				line += " " + ttos(PsimagLite::real(Sqtot[ie]));
+//			for (SizeType ie = 0; ie < cols; ++ie)
+//				line += " " + ttos(PsimagLite::real(Sqtot[ie]));
 
-			for (SizeType ie = cols; ie < norbital; ++ie)
-				line += " 0";
+//			for (SizeType ie = cols; ie < norbital; ++ie)
+//				line += " 0";
 			line += "\n";
 
-			std::cerr<<"\n";
+			//std::cerr<<"\n";
 		}
 	}
 
