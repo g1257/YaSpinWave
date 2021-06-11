@@ -2,28 +2,28 @@
 
 # Disclaimer and Licensing
 
-YaSpinWave is free software: you can redistribute it and/or modify
+SpinGlassSW is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
-YaSpinWave is distributed in the hope that it will be useful,
+SpinGlassSW is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
-along with YaSpinWave. If not, see <http://www.gnu.org/licenses/>.
-The full software license for YaSpinWave version 1.0.0
+along with SpinGlassSW. If not, see <http://www.gnu.org/licenses/>.
+The full software license for SpinGlassSW version 1.0.0
 can be found in
 file COPYING.
 
 # Please cite this work
 
-YaSpinWave is a free and open source spin-wave code.
-The full software license for YaSpinWave version 1.0.0
+SpinGlassSW is a free and open source spin-wave code.
+The full software license for SpinGlassSW version 1.0.0
 can be found in
 file COPYING.
 You are welcomed to use it and publish data
-obtained with YaSpinWave. If you do, please cite this
+obtained with SpinGlassSW. If you do, please cite this
 work. Explain How To Cite This Work. FIXME. TBW.
 
 
@@ -32,7 +32,7 @@ work. Explain How To Cite This Work. FIXME. TBW.
 Hash of the latest commit is also posted at
 https://g1257.github.io/hashes.html
 
-# Building and Running YaSpinWave
+# Building and Running SpinGlassSW
 
 ## Required Software
 
@@ -73,7 +73,7 @@ if you don't have them.
 
 4. Now issue
 
-    cd YaSpinWave/src
+    cd SpinGlassSW/src
 
    ./configure.pl
 
