@@ -1,4 +1,4 @@
 #ifndef YASPINWAVE_VERSION
-#define YASPINWAVE_VERSION "0.4"
+#define YASPINWAVE_VERSION "0.6"
 #endif
 
